@@ -591,7 +591,7 @@ function PetProfile({pet,t,bp,onUpdatePet}){
     reader.readAsDataURL(file);
   };
   return(
-    <div style={{animation:"fadeUp 0.35s ease",maxWidth:800}}>
+    <div style={{animation:"fadeUp 0.35s ease",maxWidth:"100%"}}>
       <div style={{marginBottom:20}}>
         <div style={S.eyebrow(t)}>Pet Profile</div>
       </div>
@@ -660,7 +660,7 @@ function Records({pet,t,bp,onUpdatePet}){
   const medItems=pet.medications.map(m=>({name:m.name,meta:m.notes,date:`Due: ${m.nextDue||"N/A"}`,notes:"",dot:t.gold}));
   const items=tab==="vaccinations"?vaccItems:tab==="visits"?visitItems:medItems;
   return(
-    <div style={{animation:"fadeUp 0.35s ease",maxWidth:800}}>
+    <div style={{animation:"fadeUp 0.35s ease",maxWidth:"100%"}}>
       <div style={{marginBottom:20}}>
         <div style={S.eyebrow(t)}>Health Records</div>
         <h1 style={S.pageTitle(t,mob)}>{pet.name}'s History</h1>
@@ -746,7 +746,7 @@ function WeightTracker({pet,t,bp,onUpdatePet}){
   const pathD=points.length>1?`M${points.map(p=>`${p.x},${p.y}`).join(" L")}`:null;
 
   return(
-    <div style={{animation:"fadeUp 0.35s ease",maxWidth:800}}>
+    <div style={{animation:"fadeUp 0.35s ease",maxWidth:"100%"}}>
       <div style={{marginBottom:20}}>
         <div style={S.eyebrow(t)}>Weight Tracker</div>
         <h1 style={S.pageTitle(t,mob)}>{pet.name}'s Weight</h1>
@@ -837,7 +837,7 @@ function QRCard({pet,t,bp}){
   });
 
   return(
-    <div style={{animation:"fadeUp 0.35s ease",maxWidth:700}}>
+    <div style={{animation:"fadeUp 0.35s ease",maxWidth:"100%"}}>
       <div style={{marginBottom:20}}>
         <div style={S.eyebrow(t)}>Emergency</div>
         <h1 style={S.pageTitle(t,mob)}>QR Health Card</h1>
@@ -936,7 +936,7 @@ function AIChecker({pet,t,bp,onUpdatePet}){
   };
 
   return(
-    <div style={{animation:"fadeUp 0.35s ease",maxWidth:800}}>
+    <div style={{animation:"fadeUp 0.35s ease",maxWidth:"100%"}}>
       <div style={{marginBottom:20,display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:12,flexWrap:"wrap"}}>
         <div>
           <div style={S.eyebrow(t)}>AI Health Assistant</div>
@@ -1045,7 +1045,7 @@ function VetFinder({t,bp}){
   };
 
   return(
-    <div style={{animation:"fadeUp 0.35s ease",maxWidth:800}}>
+    <div style={{animation:"fadeUp 0.35s ease",maxWidth:"100%"}}>
       <div style={{marginBottom:20}}>
         <div style={S.eyebrow(t)}>Vet Finder</div>
         <h1 style={S.pageTitle(t,mob)}>Find a Vet</h1>
@@ -1115,7 +1115,7 @@ function Documents({pet,t,bp,onUpdatePet}){
     onUpdatePet(pet.id,{documents:[...pet.documents,newDoc]});
   };
   return(
-    <div style={{animation:"fadeUp 0.35s ease",maxWidth:800}}>
+    <div style={{animation:"fadeUp 0.35s ease",maxWidth:"100%"}}>
       <div style={{marginBottom:24}}>
         <div style={S.eyebrow(t)}>Document Vault</div>
         <h1 style={S.pageTitle(t,mob)}>{pet.name}'s Records</h1>
@@ -1152,7 +1152,7 @@ function Documents({pet,t,bp,onUpdatePet}){
 function Settings({t,dark,setDark,onLogout,userName,bp}){
   const mob=bp.mobile;
   return(
-    <div style={{animation:"fadeUp 0.35s ease",maxWidth:600}}>
+    <div style={{animation:"fadeUp 0.35s ease",maxWidth:"100%"}}>
       <div style={{marginBottom:28}}>
         <div style={S.eyebrow(t)}>Account</div>
         <h1 style={S.pageTitle(t,mob)}>Settings</h1>
@@ -1382,7 +1382,7 @@ export default function CoatAndCare(){
               </div>
             </>
           )}
-          <main style={{flex:1,overflowY:"auto",padding:bp.mobile?"64px 16px 32px":bp.tablet?"26px 22px":"28px 36px 40px",minHeight:"100vh"}}>
+          <main style={{flex:1,overflowY:"auto",padding:bp.mobile?"64px 16px 32px":bp.tablet?"26px 22px":"28px 36px 40px",minHeight:"100vh",minWidth:0,width:"100%"}}>
             {page==="dashboard"&&<Dashboard pets={pets} onNavigate={navigate} activePetId={activePetId} setActivePetId={setActivePetId} t={t} bp={bp} userName={userName} onAddPet={()=>setShowAddPet(true)}/>}
             {page==="profile"&&pet&&<PetProfile pet={pet} t={t} bp={bp} onUpdatePet={updatePet}/>}
             {page==="records"&&pet&&<Records pet={pet} t={t} bp={bp} onUpdatePet={updatePet}/>}
