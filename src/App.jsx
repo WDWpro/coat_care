@@ -360,7 +360,7 @@ function Dashboard({pets,onNavigate,activePetId,setActivePetId,t,bp,userName,onA
       </div>
       <div style={{display:"grid",gridTemplateColumns:mob?"repeat(2,1fr)":"repeat(3,1fr)",gap:12,marginBottom:20}}>
         {[{label:"Pets in Care",value:pets.length,unit:"registered",accent:true},{label:"Vaccinations",value:pet.vaccinations.length,unit:"on record",accent:false},{label:"Documents",value:(pet.documents||[]).length,unit:"stored",accent:false}].map((s,i)=>(
-          <div key={s.label} style={{background:t.surface,border:`1px solid ${t.border}`,borderRadius:14,padding:mob?"14px 16px":"16px 20px",animation:`fadeUp ${0.3+i*0.08}s ease`,borderTop:s.accent?`3px solid ${t.green}`:"1px solid "+t.border}}>
+          <div key={s.label} style={{background:t.surface,border:`1px solid ${t.border}`,borderRadius:14,padding:mob?"14px 16px":"16px 20px",animation:`fadeUp ${0.3+i*0.08}s ease`,background:s.accent?t.greenPale:t.surface,border:`1px solid ${s.accent?t.greenLight:t.border}`}}>
             <div style={{fontSize:9,letterSpacing:2.5,textTransform:"uppercase",color:t.inkLight,marginBottom:8}}>{s.label}</div>
             <div style={{fontFamily:"'Playfair Display',serif",fontSize:mob?20:24,fontWeight:700,color:s.accent?t.green:t.ink,lineHeight:1}}>{s.value}</div>
             <div style={{fontSize:12,color:t.inkLight,marginTop:4,fontWeight:300}}>{s.unit}</div>
@@ -396,7 +396,7 @@ function PetProfile({pet,t,bp,onUpdatePet,onEditPet}){
         <div style={S.eyebrow(t)}>Pet Profile</div>
         <button onClick={onEditPet} style={{...S.btnSecondary(t),padding:"7px 14px",fontSize:12,display:"flex",alignItems:"center",gap:6}}><Icon name="edit" size={13} color="currentColor"/>Edit</button>
       </div>
-      <div style={{...S.card(t),marginBottom:16,display:"flex",gap:20,alignItems:"center",flexWrap:"wrap",borderTop:`3px solid ${t.green}`}}>
+      <div style={{...S.card(t),marginBottom:16,display:"flex",gap:20,alignItems:"center",flexWrap:"wrap",background:t.greenPale,border:`1px solid ${t.greenLight}`}}>
         <div style={{position:"relative",flexShrink:0,marginBottom:4}}>
           <div style={{width:88,height:88,borderRadius:18,background:`linear-gradient(135deg,${t.greenLight},${t.bgDark})`,border:`3px solid ${t.border}`,display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"'Playfair Display',serif",fontSize:32,color:t.green,fontWeight:700,overflow:"hidden",cursor:"pointer"}} onClick={()=>fileRef.current.click()}>
             {pet.photo?<img src={pet.photo} style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}} alt={pet.name}/>:initials(pet.name)}
@@ -416,13 +416,13 @@ function PetProfile({pet,t,bp,onUpdatePet,onEditPet}){
       </div>
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:16}}>
         {[{label:"Age",value:getAge(pet.dob),big:true,accent:t.green},{label:"Weight",value:pet.weight?`${pet.weight} lbs`:"Not set",big:true,accent:t.green},{label:"Microchip",value:pet.microchip||"Not registered",big:false},{label:"Primary Vet",value:pet.vet||"Not assigned",big:false}].map(v=>(
-          <div key={v.label} style={{background:t.surfaceAlt,border:`1px solid ${t.border}`,borderRadius:12,padding:"13px 15px",borderTop:v.accent?`2px solid ${v.accent}`:"none"}}>
+          <div key={v.label} style={{background:t.surfaceAlt,border:`1px solid ${t.border}`,borderRadius:12,padding:"13px 15px",}}>
             <div style={{fontSize:9,letterSpacing:2,textTransform:"uppercase",color:t.inkLight,marginBottom:5}}>{v.label}</div>
             <div style={{fontFamily:v.big?"'Playfair Display',serif":"'DM Sans',sans-serif",fontSize:v.big?20:13,fontWeight:v.big?700:500,color:t.ink,lineHeight:1.3,wordBreak:"break-word"}}>{v.value}</div>
           </div>
         ))}
       </div>
-      <div style={{...S.card(t),borderLeft:`3px solid ${t.green}`}}>
+      <div style={{...S.card(t),background:t.greenPale,border:`1px solid ${t.greenLight}`}}>
         <div style={{...S.eyebrow(t),marginBottom:14}}>Emergency Card</div>
         {[{label:"Pet Name",val:pet.name},{label:"Microchip ID",val:pet.microchip||"Not registered"},{label:"Veterinarian",val:pet.vet||"Not assigned"}].map(f=>(
           <div key={f.label} style={{marginBottom:12}}>
@@ -458,7 +458,7 @@ function Records({pet,t,bp,onUpdatePet}){
         ))}
       </div>
       {tab==="vaccinations"&&items.length>0&&<div style={{fontSize:12,color:t.inkLight,marginBottom:12,fontStyle:"italic",textAlign:"center"}}>Tap any vaccination to learn what it protects against.</div>}
-      <div style={{...S.card(t),borderTop:`3px solid ${tab==="vaccinations"?t.green:tab==="visits"?"#4a7fa5":t.gold}`}}>
+      <div style={{...S.card(t),background:t.surface,border:`1px solid ${t.border}`}}>
         {items.length===0
           ?<div style={{textAlign:"center",color:t.inkLight,padding:"36px 0",fontStyle:"italic",fontSize:14}}>No records yet — add one below.</div>
           :items.map((item,i)=>(
@@ -522,7 +522,7 @@ function WeightTracker({pet,t,bp,onUpdatePet}){
           </div>
         ))}
       </div>
-      <div style={{...S.card(t),marginBottom:16,overflowX:"auto",borderTop:`3px solid ${t.green}`}}>
+      <div style={{...S.card(t),marginBottom:16,overflowX:"auto",background:t.greenPale,border:`1px solid ${t.greenLight}`}}>
         <div style={{...S.eyebrow(t),marginBottom:12}}>Weight Over Time</div>
         {points.length<2
           ?<div style={{textAlign:"center",color:t.inkLight,padding:"32px 0",fontSize:13,fontStyle:"italic"}}>Log at least 2 entries to see the chart.</div>
@@ -594,7 +594,7 @@ function AIChecker({pet,t,bp,onUpdatePet}){
           ))}
         </div>
       )}
-      <div style={{background:`linear-gradient(135deg,${t.greenPale},${t.surface})`,border:`1px solid ${t.greenLight}`,borderRadius:16,padding:20,marginBottom:20}}>
+      <div style={{background:`linear-gradient(135deg,${t.greenPale},${t.surface})`,border:`1px solid ${t.greenLight}`,borderRadius:16,padding:20,marginBottom:20,textAlign:"left"}}>
         <div style={{fontFamily:"'Playfair Display',serif",fontSize:17,fontWeight:600,color:t.green,marginBottom:6}}>Reviewing symptoms for {pet.name}</div>
         <div style={{fontSize:13,color:t.inkLight,lineHeight:1.6,fontWeight:300}}>Describe symptoms in plain language — when they started, how severe, and anything else noticed.</div>
         <div style={{fontSize:11,color:t.rust,marginTop:8,fontStyle:"italic"}}>This tool does not replace professional veterinary advice.</div>
@@ -772,7 +772,7 @@ function Documents({pet,t,bp,onUpdatePet}){
         </div>
       )}
 
-      <div style={{display:"grid",gridTemplateColumns:mob?"1fr":"repeat(2,1fr)",gap:12}}>
+      <div style={{display:"grid",gridTemplateColumns:mob?"1fr":'repeat(2,1fr)',gap:12,maxWidth:700}}>
         {(pet.documents||[]).map((doc,i)=>(
           <div key={i} style={{...S.card(t),cursor:"pointer",padding:18,transition:"all 0.18s"}} onMouseEnter={e=>{e.currentTarget.style.borderColor=t.greenLight;e.currentTarget.style.transform="translateY(-2px)";}} onMouseLeave={e=>{e.currentTarget.style.borderColor=t.border;e.currentTarget.style.transform="translateY(0)";}}>
             <div style={{width:40,height:40,background:t.surfaceAlt,borderRadius:9,display:"flex",alignItems:"center",justifyContent:"center",marginBottom:10,border:`1px solid ${t.border}`}}><Icon name="doc" size={18} color={t.inkLight}/></div>
@@ -793,17 +793,17 @@ function Documents({pet,t,bp,onUpdatePet}){
 // ── SETTINGS ──────────────────────────────────────────────────────────────────
 function Settings({t,dark,setDark,onLogout,userName,bp}){
   const mob=bp.mobile;
-  const wrap={maxWidth:560,width:"100%"};
+  const wrap={maxWidth:700,width:"100%"};
   return(
-    <div style={{animation:"fadeUp 0.35s ease"}}>
-      <div style={{marginBottom:24}}><div style={S.eyebrow(t)}>Account</div><h1 style={S.pageTitle(t,mob)}>Settings</h1></div>
-      <div style={{...S.card(t),...wrap,marginBottom:12,padding:"16px 20px",borderLeft:`3px solid ${t.green}`}}>
+    <div style={{animation:"fadeUp 0.35s ease",display:"flex",flexDirection:"column",alignItems:mob?"stretch":"center"}}>
+      <div style={{...wrap,marginBottom:24}}><div style={S.eyebrow(t)}>Account</div><h1 style={S.pageTitle(t,mob)}>Settings</h1></div>
+      <div style={{...S.card(t),...wrap,marginBottom:12,padding:"18px 22px",background:t.greenPale,border:`1px solid ${t.greenLight}`}}>
         <div style={{display:"flex",alignItems:"center",gap:14}}>
           <div style={{width:44,height:44,borderRadius:"50%",background:t.green,display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"'Playfair Display',serif",fontSize:18,fontWeight:700,color:"#fff",flexShrink:0}}>{(userName||"U").charAt(0).toUpperCase()}</div>
           <div><div style={{fontSize:15,fontWeight:600,color:t.ink}}>{userName||"Your Account"}</div><div style={{fontSize:12,color:t.inkLight,marginTop:2}}>Free trial — 7 days remaining</div></div>
         </div>
       </div>
-      <div style={{...S.card(t),...wrap,marginBottom:12,padding:"16px 20px"}}>
+      <div style={{...S.card(t),...wrap,marginBottom:12,padding:"18px 22px"}}>
         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
           <div><div style={{fontSize:14,fontWeight:500,color:t.ink}}>Dark Mode</div><div style={{fontSize:11,color:t.inkLight,marginTop:2}}>Use a darker color scheme</div></div>
           <div onClick={()=>setDark(d=>!d)} style={{width:44,height:26,borderRadius:13,background:dark?t.green:t.border,position:"relative",cursor:"pointer",transition:"background 0.25s",flexShrink:0}}>
@@ -811,7 +811,7 @@ function Settings({t,dark,setDark,onLogout,userName,bp}){
           </div>
         </div>
       </div>
-      <div style={{...S.card(t),...wrap,marginBottom:12,padding:"16px 20px"}}>
+      <div style={{...S.card(t),...wrap,marginBottom:12,padding:"18px 22px"}}>
         <div style={{...S.eyebrow(t),marginBottom:12}}>Subscription</div>
         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12,paddingBottom:12,borderBottom:`1px solid ${t.bgDark}`}}>
           <div><div style={{fontSize:13,fontWeight:500,color:t.ink}}>Free Trial</div><div style={{fontSize:11,color:t.inkLight,marginTop:1}}>7 days remaining</div></div>
@@ -839,7 +839,7 @@ function Settings({t,dark,setDark,onLogout,userName,bp}){
           </div>
         </div>
       </div>
-      <div style={{...S.card(t),...wrap,marginBottom:12,padding:"16px 20px"}}>
+      <div style={{...S.card(t),...wrap,marginBottom:12,padding:"18px 22px"}}>
         <div style={{...S.eyebrow(t),marginBottom:10}}>About</div>
         {[{label:"App",val:"Coat & Care"},{label:"Version",val:"v2.0"},{label:"AI",val:"Anthropic Claude"},{label:"Price",val:"$2.99/mo · $19.99/yr"}].map((row,i,arr)=>(
           <div key={row.label} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"8px 0",borderBottom:i<arr.length-1?`1px solid ${t.bgDark}`:"none"}}>
@@ -848,7 +848,7 @@ function Settings({t,dark,setDark,onLogout,userName,bp}){
           </div>
         ))}
       </div>
-      <div style={{...S.card(t),...wrap,padding:"16px 20px"}}>
+      <div style={{...S.card(t),...wrap,padding:"18px 22px"}}>
         <button onClick={onLogout} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 14px",background:t.rustLight,border:`1px solid ${t.rust}33`,borderRadius:10,color:t.rust,fontSize:13,fontWeight:500,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",width:"100%"}}><Icon name="logout" size={15} color={t.rust}/>Sign Out</button>
       </div>
     </div>
@@ -902,7 +902,7 @@ export default function CoatAndCare(){
       <div onClick={()=>navigate("dashboard")} style={{padding:slim?"16px 0":"20px 14px 14px",borderBottom:"1px solid rgba(255,255,255,0.08)",textAlign:slim?"center":"left",cursor:"pointer",flexShrink:0}}>
         {slim
           ?<div style={{fontFamily:"'Playfair Display',serif",fontSize:11,fontWeight:700,color:"#fff",letterSpacing:-0.3}}>C&C</div>
-          :<><div style={{fontFamily:"'Playfair Display',serif",fontSize:16,fontWeight:700,color:"#fff",letterSpacing:-0.3,whiteSpace:"nowrap"}}>Coat & Care</div><div style={{fontSize:8,letterSpacing:2.5,textTransform:"uppercase",color:"rgba(255,255,255,0.4)",marginTop:3,whiteSpace:"nowrap"}}>Pet Health, Simplified</div></>
+          :<><div style={{fontFamily:"'Playfair Display',serif",fontSize:17,fontWeight:700,color:"#fff",letterSpacing:-0.3}}>Coat & Care</div><div style={{fontSize:9,letterSpacing:2,textTransform:"uppercase",color:"rgba(255,255,255,0.4)",marginTop:3}}>Pet Health, Simplified</div></>
         }
       </div>
       {!slim&&pets.length>0&&(
@@ -941,7 +941,7 @@ export default function CoatAndCare(){
         <TrialBanner trialInfo={trialInfo} t={t}/>
         <div style={{flex:1,display:"flex",overflow:"hidden",minHeight:0}}>
           {showSidebar&&(
-            <aside style={{width:bp.tablet?50:156,height:"100%",background:t.green,display:"flex",flexDirection:"column",flexShrink:0,overflowY:"auto",overflowX:"hidden"}}>
+            <aside style={{width:bp.tablet?52:175,height:"100%",background:t.green,display:"flex",flexDirection:"column",flexShrink:0,overflowY:"auto",overflowX:"hidden"}}>
               <SidebarContent slim={bp.tablet}/>
             </aside>
           )}
