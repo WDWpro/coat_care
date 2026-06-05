@@ -359,10 +359,10 @@ function Dashboard({pets,onNavigate,activePetId,setActivePetId,t,bp,userName,onA
         </div>
       </div>
       <div style={{display:"grid",gridTemplateColumns:mob?"repeat(2,1fr)":"repeat(3,1fr)",gap:12,marginBottom:20}}>
-        {[{label:"Pets in Care",value:pets.length,unit:"registered"},{label:"Vaccinations",value:pet.vaccinations.length,unit:"on record"},{label:"Documents",value:(pet.documents||[]).length,unit:"stored"}].map((s,i)=>(
-          <div key={s.label} style={{background:t.surface,border:`1px solid ${t.border}`,borderRadius:14,padding:mob?"14px 16px":"16px 20px",animation:`fadeUp ${0.3+i*0.08}s ease`}}>
+        {[{label:"Pets in Care",value:pets.length,unit:"registered",accent:true},{label:"Vaccinations",value:pet.vaccinations.length,unit:"on record",accent:false},{label:"Documents",value:(pet.documents||[]).length,unit:"stored",accent:false}].map((s,i)=>(
+          <div key={s.label} style={{background:t.surface,border:`1px solid ${t.border}`,borderRadius:14,padding:mob?"14px 16px":"16px 20px",animation:`fadeUp ${0.3+i*0.08}s ease`,borderTop:s.accent?`3px solid ${t.green}`:"1px solid "+t.border}}>
             <div style={{fontSize:9,letterSpacing:2.5,textTransform:"uppercase",color:t.inkLight,marginBottom:8}}>{s.label}</div>
-            <div style={{fontFamily:"'Playfair Display',serif",fontSize:mob?20:24,fontWeight:700,color:t.ink,lineHeight:1}}>{s.value}</div>
+            <div style={{fontFamily:"'Playfair Display',serif",fontSize:mob?20:24,fontWeight:700,color:s.accent?t.green:t.ink,lineHeight:1}}>{s.value}</div>
             <div style={{fontSize:12,color:t.inkLight,marginTop:4,fontWeight:300}}>{s.unit}</div>
           </div>
         ))}
@@ -396,12 +396,12 @@ function PetProfile({pet,t,bp,onUpdatePet,onEditPet}){
         <div style={S.eyebrow(t)}>Pet Profile</div>
         <button onClick={onEditPet} style={{...S.btnSecondary(t),padding:"7px 14px",fontSize:12,display:"flex",alignItems:"center",gap:6}}><Icon name="edit" size={13} color="currentColor"/>Edit</button>
       </div>
-      <div style={{...S.card(t),marginBottom:16,display:"flex",gap:20,alignItems:"center",flexWrap:"wrap"}}>
-        <div style={{position:"relative",flexShrink:0}}>
+      <div style={{...S.card(t),marginBottom:16,display:"flex",gap:20,alignItems:"center",flexWrap:"wrap",borderTop:`3px solid ${t.green}`}}>
+        <div style={{position:"relative",flexShrink:0,marginBottom:4}}>
           <div style={{width:88,height:88,borderRadius:18,background:`linear-gradient(135deg,${t.greenLight},${t.bgDark})`,border:`3px solid ${t.border}`,display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"'Playfair Display',serif",fontSize:32,color:t.green,fontWeight:700,overflow:"hidden",cursor:"pointer"}} onClick={()=>fileRef.current.click()}>
-            {pet.photo?<img src={pet.photo} style={{width:"100%",height:"100%",objectFit:"cover"}} alt={pet.name}/>:initials(pet.name)}
+            {pet.photo?<img src={pet.photo} style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}} alt={pet.name}/>:initials(pet.name)}
           </div>
-          <div onClick={()=>fileRef.current.click()} style={{position:"absolute",bottom:-4,right:-4,width:26,height:26,borderRadius:"50%",background:t.green,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",border:`2px solid ${t.surface}`}}><Icon name="camera" size={13} color="#fff"/></div>
+          <div onClick={()=>fileRef.current.click()} style={{position:"absolute",bottom:0,right:0,width:24,height:24,borderRadius:"50%",background:t.green,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",border:`2px solid ${t.surface}`}}><Icon name="camera" size={12} color="#fff"/></div>
           <input ref={fileRef} type="file" accept="image/*" style={{display:"none"}} onChange={handlePhoto}/>
         </div>
         <div style={{flex:1,minWidth:0}}>
@@ -409,25 +409,25 @@ function PetProfile({pet,t,bp,onUpdatePet,onEditPet}){
           <div style={{fontSize:14,color:t.inkLight,marginTop:2,fontStyle:"italic",fontFamily:"'Playfair Display',serif"}}>{pet.breed}</div>
           <div style={{display:"flex",gap:6,marginTop:10,flexWrap:"wrap"}}>
             {[pet.species,pet.sex,pet.dob?`Born ${new Date(pet.dob).getFullYear()}`:null].filter(Boolean).map(tag=>(
-              <span key={tag} style={{fontSize:11,padding:"4px 10px",borderRadius:20,border:`1px solid ${t.border}`,color:t.inkMid,background:t.surfaceAlt}}>{tag}</span>
+              <span key={tag} style={{fontSize:11,padding:"4px 10px",borderRadius:20,border:`1px solid ${t.greenLight}`,color:t.green,background:t.greenPale}}>{tag}</span>
             ))}
           </div>
         </div>
       </div>
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:16}}>
-        {[{label:"Age",value:getAge(pet.dob),big:true},{label:"Weight",value:pet.weight?`${pet.weight} lbs`:"Not set",big:true},{label:"Microchip",value:pet.microchip||"Not registered",big:false},{label:"Primary Vet",value:pet.vet||"Not assigned",big:false}].map(v=>(
-          <div key={v.label} style={{background:t.surfaceAlt,border:`1px solid ${t.border}`,borderRadius:12,padding:"13px 15px"}}>
+        {[{label:"Age",value:getAge(pet.dob),big:true,accent:t.green},{label:"Weight",value:pet.weight?`${pet.weight} lbs`:"Not set",big:true,accent:t.green},{label:"Microchip",value:pet.microchip||"Not registered",big:false},{label:"Primary Vet",value:pet.vet||"Not assigned",big:false}].map(v=>(
+          <div key={v.label} style={{background:t.surfaceAlt,border:`1px solid ${t.border}`,borderRadius:12,padding:"13px 15px",borderTop:v.accent?`2px solid ${v.accent}`:"none"}}>
             <div style={{fontSize:9,letterSpacing:2,textTransform:"uppercase",color:t.inkLight,marginBottom:5}}>{v.label}</div>
             <div style={{fontFamily:v.big?"'Playfair Display',serif":"'DM Sans',sans-serif",fontSize:v.big?20:13,fontWeight:v.big?700:500,color:t.ink,lineHeight:1.3,wordBreak:"break-word"}}>{v.value}</div>
           </div>
         ))}
       </div>
-      <div style={S.card(t)}>
+      <div style={{...S.card(t),borderLeft:`3px solid ${t.green}`}}>
         <div style={{...S.eyebrow(t),marginBottom:14}}>Emergency Card</div>
-        {[{label:"Pet Name",val:pet.name},{label:"Microchip ID",val:pet.microchip||"Not registered",mono:true},{label:"Veterinarian",val:pet.vet||"Not assigned"}].map(f=>(
+        {[{label:"Pet Name",val:pet.name},{label:"Microchip ID",val:pet.microchip||"Not registered"},{label:"Veterinarian",val:pet.vet||"Not assigned"}].map(f=>(
           <div key={f.label} style={{marginBottom:12}}>
             <div style={{fontSize:11,color:t.inkLight,marginBottom:3}}>{f.label}</div>
-            <div style={{fontSize:f.mono?12:14,fontFamily:f.mono?"monospace":"inherit",color:t.ink,wordBreak:"break-all"}}>{f.val}</div>
+            <div style={{fontSize:14,fontFamily:"'DM Sans',sans-serif",color:t.ink,wordBreak:"break-all"}}>{f.val}</div>
           </div>
         ))}
         <button style={{...S.btnSecondary(t),marginTop:8,fontSize:13}}>Download as PDF Card</button>
@@ -450,15 +450,15 @@ function Records({pet,t,bp,onUpdatePet}){
   return(
     <div style={{animation:"fadeUp 0.35s ease"}}>
       <div style={{marginBottom:20}}><div style={S.eyebrow(t)}>Health Records</div><h1 style={S.pageTitle(t,mob)}>{pet.name}'s History</h1><p style={S.pageSub(t)}>Complete medical records, organized and searchable.</p></div>
-      <div style={{display:"flex",gap:4,background:t.bgMid,padding:4,borderRadius:12,marginBottom:20,width:"fit-content"}}>
+      <div style={{display:"flex",gap:4,background:t.bgMid,padding:4,borderRadius:12,marginBottom:20,width:"fit-content",marginLeft:"auto",marginRight:"auto"}}>
         {["vaccinations","visits","medications"].map(tb=>(
           <button key={tb} onClick={()=>{setTab(tb);setExpanded(null);}} style={{padding:mob?"7px 11px":"8px 16px",borderRadius:9,fontSize:mob?12:13,fontWeight:tab===tb?500:400,cursor:"pointer",border:"none",background:tab===tb?t.tabActiveBg:"transparent",color:tab===tb?t.ink:t.inkLight,fontFamily:"'DM Sans',sans-serif",transition:"all 0.18s"}}>
             {tb.charAt(0).toUpperCase()+tb.slice(1)}
           </button>
         ))}
       </div>
-      {tab==="vaccinations"&&items.length>0&&<div style={{fontSize:12,color:t.inkLight,marginBottom:12,fontStyle:"italic"}}>Tap any vaccination to learn what it protects against.</div>}
-      <div style={S.card(t)}>
+      {tab==="vaccinations"&&items.length>0&&<div style={{fontSize:12,color:t.inkLight,marginBottom:12,fontStyle:"italic",textAlign:"center"}}>Tap any vaccination to learn what it protects against.</div>}
+      <div style={{...S.card(t),borderTop:`3px solid ${tab==="vaccinations"?t.green:tab==="visits"?"#4a7fa5":t.gold}`}}>
         {items.length===0
           ?<div style={{textAlign:"center",color:t.inkLight,padding:"36px 0",fontStyle:"italic",fontSize:14}}>No records yet — add one below.</div>
           :items.map((item,i)=>(
@@ -522,16 +522,18 @@ function WeightTracker({pet,t,bp,onUpdatePet}){
           </div>
         ))}
       </div>
-      <div style={{...S.card(t),marginBottom:16,overflowX:"auto"}}>
+      <div style={{...S.card(t),marginBottom:16,overflowX:"auto",borderTop:`3px solid ${t.green}`}}>
         <div style={{...S.eyebrow(t),marginBottom:12}}>Weight Over Time</div>
         {points.length<2
           ?<div style={{textAlign:"center",color:t.inkLight,padding:"32px 0",fontSize:13,fontStyle:"italic"}}>Log at least 2 entries to see the chart.</div>
-          :<svg width={chartW} height={chartH} style={{display:"block",maxWidth:"100%"}}>
-            {[0,0.25,0.5,0.75,1].map(v=><line key={v} x1={pad} y1={chartH-pad-(v*(chartH-pad*2))} x2={chartW-pad} y2={chartH-pad-(v*(chartH-pad*2))} stroke={t.border} strokeWidth="1" strokeDasharray="3,3"/>)}
-            <path d={pathD} fill="none" stroke={t.green} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-            <path d={pathD+` L${points[points.length-1].x},${chartH-pad} L${points[0].x},${chartH-pad} Z`} fill={t.greenPale} opacity="0.5"/>
-            {points.map((p,i)=><g key={i}><circle cx={p.x} cy={p.y} r="5" fill={t.green} stroke={t.surface} strokeWidth="2"/><text x={p.x} y={p.y-10} textAnchor="middle" fontSize="9" fill={t.inkLight} fontFamily="DM Sans,sans-serif">{p.w}</text></g>)}
-          </svg>
+          :<div style={{display:"flex",justifyContent:"center"}}>
+            <svg width={chartW} height={chartH} style={{display:"block",maxWidth:"100%"}}>
+              {[0,0.25,0.5,0.75,1].map(v=><line key={v} x1={pad} y1={chartH-pad-(v*(chartH-pad*2))} x2={chartW-pad} y2={chartH-pad-(v*(chartH-pad*2))} stroke={t.border} strokeWidth="1" strokeDasharray="3,3"/>)}
+              <path d={pathD} fill="none" stroke={t.green} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d={pathD+` L${points[points.length-1].x},${chartH-pad} L${points[0].x},${chartH-pad} Z`} fill={t.greenPale} opacity="0.5"/>
+              {points.map((p,i)=><g key={i}><circle cx={p.x} cy={p.y} r="5" fill={t.green} stroke={t.surface} strokeWidth="2"/><text x={p.x} y={p.y-10} textAnchor="middle" fontSize="9" fill={t.inkLight} fontFamily="DM Sans,sans-serif">{p.w}</text></g>)}
+            </svg>
+          </div>
         }
       </div>
       {log.length>0&&(
@@ -791,61 +793,63 @@ function Documents({pet,t,bp,onUpdatePet}){
 // ── SETTINGS ──────────────────────────────────────────────────────────────────
 function Settings({t,dark,setDark,onLogout,userName,bp}){
   const mob=bp.mobile;
+  const wrap={maxWidth:560,width:"100%"};
   return(
     <div style={{animation:"fadeUp 0.35s ease"}}>
-      <div style={{marginBottom:28}}><div style={S.eyebrow(t)}>Account</div><h1 style={S.pageTitle(t,mob)}>Settings</h1></div>
-      <div style={{...S.card(t),marginBottom:14}}>
-        <div style={{...S.eyebrow(t),marginBottom:14}}>Account</div>
+      <div style={{marginBottom:24}}><div style={S.eyebrow(t)}>Account</div><h1 style={S.pageTitle(t,mob)}>Settings</h1></div>
+      <div style={{...S.card(t),...wrap,marginBottom:12,padding:"16px 20px",borderLeft:`3px solid ${t.green}`}}>
         <div style={{display:"flex",alignItems:"center",gap:14}}>
-          <div style={{width:48,height:48,borderRadius:"50%",background:t.green,display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"'Playfair Display',serif",fontSize:20,fontWeight:700,color:"#fff",flexShrink:0}}>{(userName||"U").charAt(0).toUpperCase()}</div>
+          <div style={{width:44,height:44,borderRadius:"50%",background:t.green,display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"'Playfair Display',serif",fontSize:18,fontWeight:700,color:"#fff",flexShrink:0}}>{(userName||"U").charAt(0).toUpperCase()}</div>
           <div><div style={{fontSize:15,fontWeight:600,color:t.ink}}>{userName||"Your Account"}</div><div style={{fontSize:12,color:t.inkLight,marginTop:2}}>Free trial — 7 days remaining</div></div>
         </div>
       </div>
-      <div style={{...S.card(t),marginBottom:14}}>
-        <div style={{...S.eyebrow(t),marginBottom:14}}>Appearance</div>
+      <div style={{...S.card(t),...wrap,marginBottom:12,padding:"16px 20px"}}>
         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-          <div><div style={{fontSize:14,fontWeight:500,color:t.ink}}>Dark Mode</div><div style={{fontSize:12,color:t.inkLight,marginTop:2}}>Use a darker color scheme</div></div>
-          <div onClick={()=>setDark(d=>!d)} style={{width:48,height:28,borderRadius:14,background:dark?t.greenMid:t.border,position:"relative",cursor:"pointer",transition:"background 0.25s",flexShrink:0}}>
-            <div style={{position:"absolute",top:3,left:dark?22:3,width:22,height:22,borderRadius:"50%",background:"#fff",boxShadow:"0 1px 4px rgba(0,0,0,0.25)",transition:"left 0.25s"}}/>
+          <div><div style={{fontSize:14,fontWeight:500,color:t.ink}}>Dark Mode</div><div style={{fontSize:11,color:t.inkLight,marginTop:2}}>Use a darker color scheme</div></div>
+          <div onClick={()=>setDark(d=>!d)} style={{width:44,height:26,borderRadius:13,background:dark?t.green:t.border,position:"relative",cursor:"pointer",transition:"background 0.25s",flexShrink:0}}>
+            <div style={{position:"absolute",top:3,left:dark?20:3,width:20,height:20,borderRadius:"50%",background:"#fff",boxShadow:"0 1px 4px rgba(0,0,0,0.25)",transition:"left 0.25s"}}/>
           </div>
         </div>
       </div>
-      <div style={{...S.card(t),marginBottom:14}}>
-        <div style={{...S.eyebrow(t),marginBottom:16}}>Subscription</div>
-        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14,paddingBottom:14,borderBottom:`1px solid ${t.bgDark}`}}>
-          <div><div style={{fontSize:14,fontWeight:500,color:t.ink}}>Free Trial</div><div style={{fontSize:12,color:t.inkLight,marginTop:2}}>7 days remaining</div></div>
-          <span style={{fontSize:11,padding:"3px 10px",borderRadius:20,background:t.greenPale,color:t.green,border:`1px solid ${t.greenLight}`,fontWeight:500}}>Active</span>
+      <div style={{...S.card(t),...wrap,marginBottom:12,padding:"16px 20px"}}>
+        <div style={{...S.eyebrow(t),marginBottom:12}}>Subscription</div>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12,paddingBottom:12,borderBottom:`1px solid ${t.bgDark}`}}>
+          <div><div style={{fontSize:13,fontWeight:500,color:t.ink}}>Free Trial</div><div style={{fontSize:11,color:t.inkLight,marginTop:1}}>7 days remaining</div></div>
+          <span style={{fontSize:10,padding:"2px 9px",borderRadius:20,background:t.greenPale,color:t.green,border:`1px solid ${t.greenLight}`,fontWeight:600}}>Active</span>
         </div>
-        {/* Annual plan - highlighted */}
-        <div style={{background:t.greenPale,border:`1.5px solid ${t.greenLight}`,borderRadius:12,padding:"14px 16px",marginBottom:10,position:"relative"}}>
-          <div style={{position:"absolute",top:-10,right:12,background:t.green,color:"#fff",fontSize:10,fontWeight:600,padding:"3px 10px",borderRadius:20,letterSpacing:1}}>BEST VALUE</div>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
-            <div><div style={{fontSize:14,fontWeight:600,color:t.ink}}>Annual Plan</div><div style={{fontSize:12,color:t.inkLight,marginTop:2}}>Save 44% vs monthly</div></div>
-            <div style={{textAlign:"right"}}><div style={{fontFamily:"'Playfair Display',serif",fontSize:20,fontWeight:700,color:t.green}}>$19.99</div><div style={{fontSize:11,color:t.inkLight}}>per year</div></div>
+        {/* Annual — Best Value badge inline, not absolute */}
+        <div style={{background:t.greenPale,border:`1.5px solid ${t.green}`,borderRadius:10,padding:"12px 14px",marginBottom:8}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8}}>
+            <div>
+              <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:3}}>
+                <div style={{fontSize:13,fontWeight:600,color:t.ink}}>Annual Plan</div>
+                <span style={{fontSize:9,fontWeight:700,letterSpacing:1,background:t.green,color:"#fff",padding:"2px 7px",borderRadius:10}}>BEST VALUE</span>
+              </div>
+              <div style={{fontSize:11,color:t.inkLight}}>Save 44% vs monthly</div>
+            </div>
+            <div style={{textAlign:"right"}}><div style={{fontFamily:"'Playfair Display',serif",fontSize:18,fontWeight:700,color:t.green}}>$19.99</div><div style={{fontSize:10,color:t.inkLight}}>per year</div></div>
           </div>
-          <button style={{...S.btnPrimary(t),width:"100%",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}><Icon name="star" size={15} color="#fff"/>Subscribe Annually</button>
+          <button style={{...S.btnPrimary(t),width:"100%",display:"flex",alignItems:"center",justifyContent:"center",gap:8,padding:"10px"}}><Icon name="star" size={14} color="#fff"/>Subscribe Annually</button>
         </div>
-        {/* Monthly plan */}
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"12px 0"}}>
-          <div><div style={{fontSize:14,color:t.ink}}>Monthly Plan</div><div style={{fontSize:12,color:t.inkLight,marginTop:2}}>Cancel anytime</div></div>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"8px 0"}}>
+          <div><div style={{fontSize:13,color:t.ink}}>Monthly</div><div style={{fontSize:11,color:t.inkLight}}>Cancel anytime</div></div>
           <div style={{display:"flex",alignItems:"center",gap:10}}>
-            <div style={{textAlign:"right"}}><div style={{fontSize:16,fontWeight:600,color:t.ink}}>$2.99</div><div style={{fontSize:11,color:t.inkLight}}>per month</div></div>
-            <button style={{...S.btnSecondary(t),padding:"8px 14px",fontSize:12}}>Subscribe</button>
+            <div style={{textAlign:"right"}}><div style={{fontSize:15,fontWeight:600,color:t.ink}}>$2.99</div><div style={{fontSize:10,color:t.inkLight}}>per month</div></div>
+            <button style={{...S.btnSecondary(t),padding:"7px 12px",fontSize:12}}>Subscribe</button>
           </div>
         </div>
       </div>
-      <div style={{...S.card(t),marginBottom:14}}>
-        <div style={{...S.eyebrow(t),marginBottom:14}}>About</div>
-        {[{label:"App",val:"Coat & Care"},{label:"Version",val:"v2.0"},{label:"AI Provider",val:"Anthropic Claude"},{label:"Price",val:"$2.99/mo or $19.99/yr"}].map((row,i,arr)=>(
-          <div key={row.label} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 0",borderBottom:i<arr.length-1?`1px solid ${t.bgDark}`:"none"}}>
-            <span style={{fontSize:14,color:t.inkLight}}>{row.label}</span>
-            <span style={{fontSize:14,color:t.ink,fontWeight:500}}>{row.val}</span>
+      <div style={{...S.card(t),...wrap,marginBottom:12,padding:"16px 20px"}}>
+        <div style={{...S.eyebrow(t),marginBottom:10}}>About</div>
+        {[{label:"App",val:"Coat & Care"},{label:"Version",val:"v2.0"},{label:"AI",val:"Anthropic Claude"},{label:"Price",val:"$2.99/mo · $19.99/yr"}].map((row,i,arr)=>(
+          <div key={row.label} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"8px 0",borderBottom:i<arr.length-1?`1px solid ${t.bgDark}`:"none"}}>
+            <span style={{fontSize:13,color:t.inkLight}}>{row.label}</span>
+            <span style={{fontSize:13,color:t.ink,fontWeight:500}}>{row.val}</span>
           </div>
         ))}
       </div>
-      <div style={S.card(t)}>
-        <div style={{...S.eyebrow(t),marginBottom:14}}>Account Actions</div>
-        <button onClick={onLogout} style={{display:"flex",alignItems:"center",gap:10,padding:"12px 16px",background:t.rustLight,border:`1px solid ${t.rust}33`,borderRadius:10,color:t.rust,fontSize:14,fontWeight:500,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",width:"100%"}}><Icon name="logout" size={16} color={t.rust}/>Sign Out</button>
+      <div style={{...S.card(t),...wrap,padding:"16px 20px"}}>
+        <button onClick={onLogout} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 14px",background:t.rustLight,border:`1px solid ${t.rust}33`,borderRadius:10,color:t.rust,fontSize:13,fontWeight:500,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",width:"100%"}}><Icon name="logout" size={15} color={t.rust}/>Sign Out</button>
       </div>
     </div>
   );
@@ -906,8 +910,8 @@ export default function CoatAndCare(){
           <div style={{fontSize:8,letterSpacing:3,textTransform:"uppercase",color:"rgba(255,255,255,0.3)",padding:"0 5px",marginBottom:5,fontWeight:500}}>Your Pets</div>
           {pets.map(p=>(
             <div key={p.id} onClick={()=>{setActivePetId(p.id);navigate("dashboard");}} style={{display:"flex",alignItems:"center",gap:7,padding:"6px 6px",borderRadius:8,cursor:"pointer",marginBottom:2,background:activePetId===p.id?"rgba(255,255,255,0.13)":"transparent"}} onMouseEnter={e=>{if(activePetId!==p.id)e.currentTarget.style.background="rgba(255,255,255,0.07)";}} onMouseLeave={e=>{if(activePetId!==p.id)e.currentTarget.style.background="transparent";}}>
-              <div style={{width:26,height:26,borderRadius:"50%",background:p.photo?"transparent":"rgba(200,220,201,0.9)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700,color:"#2d4a35",flexShrink:0,overflow:"hidden"}}>
-                {p.photo?<img src={p.photo} style={{width:"100%",height:"100%",objectFit:"cover"}} alt={p.name}/>:initials(p.name)}
+              <div style={{width:26,height:26,borderRadius:"50%",background:p.photo?"transparent":"rgba(200,220,201,0.9)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700,color:"#2d4a35",flexShrink:0,overflow:"hidden",minWidth:26}}>
+                {p.photo?<img src={p.photo} style={{width:26,height:26,objectFit:"cover",display:"block",borderRadius:"50%"}} alt={p.name}/>:initials(p.name)}
               </div>
               <div style={{minWidth:0}}><div style={{fontSize:12,fontWeight:500,color:"rgba(255,255,255,0.9)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.name}</div><div style={{fontSize:10,color:"rgba(255,255,255,0.4)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.breed}</div></div>
             </div>
@@ -978,7 +982,7 @@ export default function CoatAndCare(){
               </div>
             </>
           )}
-          <main style={{flex:1,overflowY:"auto",overflowX:"hidden",padding:bp.mobile?"62px 16px 32px":bp.tablet?"24px 20px":"26px 32px 40px",minWidth:0}}>
+          <main style={{flex:1,overflowY:"auto",overflowX:"hidden",padding:bp.mobile?"62px 18px 32px":bp.tablet?"24px 24px":"28px 36px 40px",minWidth:0}}>
             {page==="dashboard"&&<Dashboard pets={pets} onNavigate={navigate} activePetId={activePetId} setActivePetId={setActivePetId} t={t} bp={bp} userName={userName} onAddPet={()=>setShowAddPet(true)}/>}
             {page==="profile"&&pet&&<PetProfile pet={pet} t={t} bp={bp} onUpdatePet={updatePet} onEditPet={()=>setEditingPet(pet)}/>}
             {page==="records"&&pet&&<Records pet={pet} t={t} bp={bp} onUpdatePet={updatePet}/>}
