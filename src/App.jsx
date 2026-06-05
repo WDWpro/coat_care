@@ -458,7 +458,7 @@ function PetProfile({pet,t,bp,onUpdatePet,onEditPet}){
           </div>
         ))}
       </div>
-      <div style={{S.card(t)}}>
+      <div style={{...S.card(t)}}>
         <div style={{...S.eyebrow(t),marginBottom:14}}>Emergency Card</div>
         {[{label:"Pet Name",val:pet.name},{label:"Microchip ID",val:pet.microchip||"Not registered"},{label:"Veterinarian",val:pet.vet||"Not assigned"}].map(f=>(
           <div key={f.label} style={{marginBottom:12}}>
