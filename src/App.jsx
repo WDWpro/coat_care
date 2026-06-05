@@ -57,11 +57,11 @@ const themes={
     inputBg:"#fdf9f4",tabActiveBg:"#fdf9f4",overlay:"rgba(26,22,16,0.5)",
   },
   dark:{
-    bg:"#0e1510",bgMid:"#141d11",bgDark:"#192116",
-    surface:"#192116",surfaceAlt:"#141d11",
-    ink:"#e8e3da",inkMid:"#c8c3ba",inkLight:"#9aa496",
-    border:"#253221",shadow:"rgba(0,0,0,0.35)",
-    green:"#1e3326",greenMid:"#263d2e",greenLight:"#2d4a35",greenPale:"#182a1b",
+    bg:"#0d1a10",bgMid:"#111f14",bgDark:"#162219",
+    surface:"#1a2e1e",surfaceAlt:"#152418",
+    ink:"#f0ece4",inkMid:"#d4cfc6",inkLight:"#a8b4a9",
+    border:"#2d4a35",shadow:"rgba(0,0,0,0.4)",
+    green:"#2d4a35",greenMid:"#3d6347",greenLight:"#4a6e52",greenPale:"#1e3326",
     rust:"#c97255",rustLight:"#2d1a12",
     gold:"#d4a84b",goldLight:"#2a2010",
     inputBg:"#192116",tabActiveBg:"#253221",overlay:"rgba(0,0,0,0.65)",
@@ -73,7 +73,7 @@ const GlobalStyles=()=>(
     @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap');
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
     html,body,#root{height:100%;width:100%;}
-    body{overflow-x:hidden;}
+    body{overflow:hidden;overscroll-behavior:none;-webkit-overflow-scrolling:touch;position:fixed;width:100%;}
     *{-webkit-user-select:none;user-select:none;}
     input,textarea,select{-webkit-user-select:text!important;user-select:text!important;}
     @keyframes fadeIn{from{opacity:0}to{opacity:1}}
@@ -95,7 +95,7 @@ const S={
   btnPrimary:(t)=>({padding:"12px 26px",background:t.green,color:"#fff",border:"none",borderRadius:10,fontSize:14,fontWeight:500,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",transition:"opacity 0.18s"}),
   btnSecondary:(t)=>({padding:"11px 22px",border:`1.5px solid ${t.border}`,background:"transparent",borderRadius:10,fontSize:14,cursor:"pointer",color:t.inkMid,fontFamily:"'DM Sans',sans-serif"}),
   modal:(t)=>({position:"fixed",inset:0,background:t.overlay,backdropFilter:"blur(4px)",zIndex:100,display:"flex",alignItems:"center",justifyContent:"center",padding:16,animation:"fadeIn 0.2s ease"}),
-  modalBox:(t)=>({background:t.bg,borderRadius:20,padding:"28px 24px",width:"100%",maxWidth:440,maxHeight:"90vh",overflowY:"auto",boxShadow:`0 24px 80px ${t.shadow}`,animation:"popIn 0.25s ease"}),
+  modalBox:(t)=>({background:t.bg,borderRadius:20,padding:"24px 20px",width:"calc(100% - 32px)",maxWidth:420,maxHeight:"88vh",overflowY:"auto",boxShadow:`0 24px 80px ${t.shadow}`,animation:"popIn 0.25s ease"}),
 };
 
 const VACCINE_INFO={
@@ -106,6 +106,42 @@ const VACCINE_INFO={
   "FVRCP":{protects:"Feline Viral Rhinotracheitis, Calicivirus, and Panleukopenia.",why:"Panleukopenia is highly contagious and often fatal in cats.",frequency:"Kitten series, then every 1–3 years.",sideEffects:"Mild lethargy for 24–48 hours."},
 };
 const VACCINE_DEFAULT={protects:"Infectious disease.",why:"Recommended by veterinarians as preventative care.",frequency:"Your vet will advise on schedule.",sideEffects:"Mild soreness and brief lethargy are most common."};
+
+// ── ONBOARDING ────────────────────────────────────────────────────────────────
+function OnboardingScreen({onDone,t,bp}){
+  const [slide,setSlide]=useState(0);
+  const mob=bp.mobile;
+  const slides=[
+    {icon:"paw",title:"Welcome to\nCoat & Care",sub:"The complete health companion for your pets. Everything in one place.",cta:null},
+    {icon:"sparkle",title:"AI Document\nScanner",sub:"Upload any vet report and our AI reads it, extracts every vaccination, visit, and medication — and fills it in for you automatically.",cta:null},
+    {icon:"brain",title:"Symptom\nChecker",sub:"Describe what you're observing. Our AI gives you clear, calm guidance on whether to go to the vet or wait.",cta:null},
+    {icon:"trending",title:"Track Everything",sub:"Weight over time, vaccination history, vet visits, medications — all searchable and organized.",cta:"Get Started"},
+  ];
+  const s=slides[slide];
+  return(
+    <div style={{minHeight:"100vh",width:"100%",background:`linear-gradient(160deg,${t.green} 0%,#1a3d22 100%)`,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"space-between",padding:"48px 32px 40px",fontFamily:"'DM Sans',sans-serif",animation:"fadeIn 0.4s ease"}}>
+      <button onClick={onDone} style={{alignSelf:"flex-end",background:"rgba(255,255,255,0.1)",border:"none",borderRadius:8,color:"rgba(255,255,255,0.6)",fontSize:13,padding:"6px 14px",cursor:"pointer",fontFamily:"'DM Sans',sans-serif"}}>Skip</button>
+      <div style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",textAlign:"center",gap:24,maxWidth:400,animation:"fadeUp 0.4s ease"}}>
+        <div style={{width:96,height:96,borderRadius:28,background:"rgba(255,255,255,0.12)",display:"flex",alignItems:"center",justifyContent:"center",marginBottom:8}}>
+          <Icon name={s.icon} size={44} color="rgba(255,255,255,0.9)"/>
+        </div>
+        <div style={{fontFamily:"'Playfair Display',serif",fontSize:mob?32:40,fontWeight:700,color:"#fff",lineHeight:1.1,whiteSpace:"pre-line"}}>{s.title}</div>
+        <div style={{fontSize:mob?15:17,color:"rgba(255,255,255,0.7)",lineHeight:1.6,fontWeight:300,maxWidth:320}}>{s.sub}</div>
+      </div>
+      <div style={{width:"100%",maxWidth:400,display:"flex",flexDirection:"column",alignItems:"center",gap:20}}>
+        <div style={{display:"flex",gap:8}}>
+          {slides.map((_,i)=>(
+            <div key={i} onClick={()=>setSlide(i)} style={{width:i===slide?24:8,height:8,borderRadius:4,background:i===slide?"#fff":"rgba(255,255,255,0.3)",transition:"all 0.25s",cursor:"pointer"}}/>
+          ))}
+        </div>
+        {s.cta
+          ?<button onClick={onDone} style={{...({padding:"16px 48px",background:"#fff",color:t.green,border:"none",borderRadius:14,fontSize:16,fontWeight:600,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",width:"100%"})}}>{s.cta}</button>
+          :<button onClick={()=>setSlide(v=>v+1)} style={{...({padding:"16px 48px",background:"rgba(255,255,255,0.15)",color:"#fff",border:"1px solid rgba(255,255,255,0.3)",borderRadius:14,fontSize:15,fontWeight:500,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",width:"100%"})}}>Next →</button>
+        }
+      </div>
+    </div>
+  );
+}
 
 // ── LOGIN ─────────────────────────────────────────────────────────────────────
 function LoginScreen({onLogin,t,bp}){
@@ -359,8 +395,8 @@ function Dashboard({pets,onNavigate,activePetId,setActivePetId,t,bp,userName,onA
         </div>
       </div>
       <div style={{display:"grid",gridTemplateColumns:mob?"repeat(2,1fr)":"repeat(3,1fr)",gap:12,marginBottom:20}}>
-        {[{label:"Pets in Care",value:pets.length,unit:"registered",accent:true},{label:"Vaccinations",value:pet.vaccinations.length,unit:"on record",accent:false},{label:"Documents",value:(pet.documents||[]).length,unit:"stored",accent:false}].map((s,i)=>(
-          <div key={s.label} style={{background:t.surface,border:`1px solid ${t.border}`,borderRadius:14,padding:mob?"14px 16px":"16px 20px",animation:`fadeUp ${0.3+i*0.08}s ease`,background:s.accent?t.greenPale:t.surface,border:`1px solid ${s.accent?t.greenLight:t.border}`}}>
+        {[{label:"Pets in Care",value:pets.length,unit:"registered",accent:false},{label:"Vaccinations",value:pet.vaccinations.length,unit:"on record",accent:false},{label:"Documents",value:(pet.documents||[]).length,unit:"stored",accent:false}].map((s,i)=>(
+          <div key={s.label} style={{background:t.surface,border:`1px solid ${t.border}`,borderRadius:14,padding:mob?"14px 16px":"16px 20px",animation:`fadeUp ${0.3+i*0.08}s ease`,background:t.surface,border:`1px solid ${t.border}`}}>
             <div style={{fontSize:9,letterSpacing:2.5,textTransform:"uppercase",color:t.inkLight,marginBottom:8}}>{s.label}</div>
             <div style={{fontFamily:"'Playfair Display',serif",fontSize:mob?20:24,fontWeight:700,color:s.accent?t.green:t.ink,lineHeight:1}}>{s.value}</div>
             <div style={{fontSize:12,color:t.inkLight,marginTop:4,fontWeight:300}}>{s.unit}</div>
@@ -396,7 +432,7 @@ function PetProfile({pet,t,bp,onUpdatePet,onEditPet}){
         <div style={S.eyebrow(t)}>Pet Profile</div>
         <button onClick={onEditPet} style={{...S.btnSecondary(t),padding:"7px 14px",fontSize:12,display:"flex",alignItems:"center",gap:6}}><Icon name="edit" size={13} color="currentColor"/>Edit</button>
       </div>
-      <div style={{...S.card(t),marginBottom:16,display:"flex",gap:20,alignItems:"center",flexWrap:"wrap",background:t.greenPale,border:`1px solid ${t.greenLight}`}}>
+      <div style={{...S.card(t),marginBottom:16,display:"flex",gap:20,alignItems:"center",flexWrap:"wrap"}}>
         <div style={{position:"relative",flexShrink:0,marginBottom:4}}>
           <div style={{width:88,height:88,borderRadius:18,background:`linear-gradient(135deg,${t.greenLight},${t.bgDark})`,border:`3px solid ${t.border}`,display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"'Playfair Display',serif",fontSize:32,color:t.green,fontWeight:700,overflow:"hidden",cursor:"pointer"}} onClick={()=>fileRef.current.click()}>
             {pet.photo?<img src={pet.photo} style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}} alt={pet.name}/>:initials(pet.name)}
@@ -422,7 +458,7 @@ function PetProfile({pet,t,bp,onUpdatePet,onEditPet}){
           </div>
         ))}
       </div>
-      <div style={{...S.card(t),background:t.greenPale,border:`1px solid ${t.greenLight}`}}>
+      <div style={{S.card(t)}}>
         <div style={{...S.eyebrow(t),marginBottom:14}}>Emergency Card</div>
         {[{label:"Pet Name",val:pet.name},{label:"Microchip ID",val:pet.microchip||"Not registered"},{label:"Veterinarian",val:pet.vet||"Not assigned"}].map(f=>(
           <div key={f.label} style={{marginBottom:12}}>
@@ -522,7 +558,7 @@ function WeightTracker({pet,t,bp,onUpdatePet}){
           </div>
         ))}
       </div>
-      <div style={{...S.card(t),marginBottom:16,overflowX:"auto",background:t.greenPale,border:`1px solid ${t.greenLight}`}}>
+      <div style={{...S.card(t),marginBottom:16,overflowX:"auto"}}>
         <div style={{...S.eyebrow(t),marginBottom:12}}>Weight Over Time</div>
         {points.length<2
           ?<div style={{textAlign:"center",color:t.inkLight,padding:"32px 0",fontSize:13,fontStyle:"italic"}}>Log at least 2 entries to see the chart.</div>
@@ -594,7 +630,7 @@ function AIChecker({pet,t,bp,onUpdatePet}){
           ))}
         </div>
       )}
-      <div style={{background:`linear-gradient(135deg,${t.greenPale},${t.surface})`,border:`1px solid ${t.greenLight}`,borderRadius:16,padding:20,marginBottom:20,textAlign:"left"}}>
+      <div style={{background:`linear-gradient(135deg,${t.greenPale},${t.surface})`,border:`1px solid ${t.greenLight}`,borderRadius:16,padding:20,marginBottom:20}}>
         <div style={{fontFamily:"'Playfair Display',serif",fontSize:17,fontWeight:600,color:t.green,marginBottom:6}}>Reviewing symptoms for {pet.name}</div>
         <div style={{fontSize:13,color:t.inkLight,lineHeight:1.6,fontWeight:300}}>Describe symptoms in plain language — when they started, how severe, and anything else noticed.</div>
         <div style={{fontSize:11,color:t.rust,marginTop:8,fontStyle:"italic"}}>This tool does not replace professional veterinary advice.</div>
@@ -867,7 +903,7 @@ export default function CoatAndCare(){
   const [page,setPage]=useState("dashboard");
   const [showAddPet,setShowAddPet]=useState(false);
   const [editingPet,setEditingPet]=useState(null);
-  const [drawerOpen,setDrawerOpen]=useState(false);
+  const [onboarded,setOnboarded]=useState(()=>localStorage.getItem('cc_onboarded')==='1');
 
   const t=dark?themes.dark:themes.light;
   const pet=pets.find(p=>p.id===activePetId)||(pets.length>0?pets[0]:null);
@@ -884,14 +920,15 @@ export default function CoatAndCare(){
     {id:"settings",label:"Settings",icon:"settings"},
   ];
 
-  const navigate=(id)=>{setPage(id);setDrawerOpen(false);};
+  const navigate=(id)=>{setPage(id);};
   const handleLogin=(name,date)=>{setUserName(name);setSignupDate(date);setLoggedIn(true);};
-  const handleLogout=()=>{setLoggedIn(false);setPage("dashboard");setDrawerOpen(false);};
+  const handleLogout=()=>{setLoggedIn(false);setPage("dashboard");};
 
   const updatePet=(id,changes)=>setPets(prev=>prev.map(p=>{if(p.id!==id)return p;const u={...p};Object.keys(changes).forEach(k=>{u[k]=changes[k];});return u;}));
   const addPet=(newPet)=>{setPets(prev=>[...prev,newPet]);setActivePetId(newPet.id);};
   const savePetEdits=(id,form)=>updatePet(id,form);
 
+  if(!onboarded)return<><GlobalStyles/><OnboardingScreen onDone={()=>{localStorage.setItem('cc_onboarded','1');setOnboarded(true);}} t={t} bp={bp}/></>;
   if(!loggedIn)return<><GlobalStyles/><LoginScreen onLogin={handleLogin} t={t} bp={bp}/></>;
 
   const showSidebar=bp.desktop||bp.tablet;
@@ -946,43 +983,31 @@ export default function CoatAndCare(){
             </aside>
           )}
           {bp.mobile&&(
-            <div style={{position:"fixed",top:0,left:0,right:0,height:50,background:t.green,display:"flex",alignItems:"center",justifyContent:"space-between",padding:"0 16px",zIndex:60,boxShadow:`0 2px 8px ${t.shadow}`}}>
-              <div onClick={()=>navigate("dashboard")} style={{fontFamily:"'Playfair Display',serif",fontSize:15,fontWeight:700,color:"#fff",cursor:"pointer",letterSpacing:-0.3}}>Coat & Care</div>
-              <button onClick={()=>setDrawerOpen(v=>!v)} style={{background:"none",border:"none",cursor:"pointer",display:"flex",padding:4}}><Icon name={drawerOpen?"x":"menu"} size={20} color="#fff"/></button>
+            <div style={{position:"fixed",top:0,left:0,right:0,height:50,background:t.green,display:"flex",alignItems:"center",justifyContent:"space-between",padding:"0 18px",zIndex:60,boxShadow:`0 1px 0 rgba(255,255,255,0.08)`}}>
+              <div onClick={()=>navigate("dashboard")} style={{fontFamily:"'Playfair Display',serif",fontSize:16,fontWeight:700,color:"#fff",cursor:"pointer",letterSpacing:-0.3}}>Coat & Care</div>
+              <button onClick={()=>setShowAddPet(true)} style={{background:"rgba(255,255,255,0.12)",border:"none",borderRadius:8,cursor:"pointer",display:"flex",alignItems:"center",gap:5,padding:"6px 10px",color:"#fff",fontSize:12,fontFamily:"'DM Sans',sans-serif"}}>
+                <Icon name="plus" size={13} color="#fff"/>Add pet
+              </button>
             </div>
           )}
-          {bp.mobile&&drawerOpen&&(
-            <>
-              <div onClick={()=>setDrawerOpen(false)} style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.45)",zIndex:70,animation:"fadeIn 0.2s ease"}}/>
-              <div style={{position:"fixed",top:0,right:0,bottom:0,width:240,background:t.green,zIndex:80,display:"flex",flexDirection:"column",animation:"slideIn 0.25s ease",overflowY:"auto"}}>
-                <div style={{padding:"14px 14px 10px",borderBottom:"1px solid rgba(255,255,255,0.08)",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-                  <div style={{fontFamily:"'Playfair Display',serif",fontSize:15,fontWeight:700,color:"#fff",letterSpacing:-0.3}}>Coat & Care</div>
-                  <button onClick={()=>setDrawerOpen(false)} style={{background:"none",border:"none",cursor:"pointer",display:"flex"}}><Icon name="x" size={18} color="rgba(255,255,255,0.7)"/></button>
-                </div>
-                {pets.length>0&&(
-                  <div style={{padding:"10px 12px 4px"}}>
-                    <div style={{fontSize:8,letterSpacing:3,textTransform:"uppercase",color:"rgba(255,255,255,0.3)",marginBottom:5,fontWeight:500}}>Your Pets</div>
-                    {pets.map(p=>(
-                      <div key={p.id} onClick={()=>{setActivePetId(p.id);navigate("dashboard");}} style={{display:"flex",alignItems:"center",gap:8,padding:"7px 6px",borderRadius:8,cursor:"pointer",marginBottom:2,background:activePetId===p.id?"rgba(255,255,255,0.13)":"transparent"}}>
-                        <div style={{width:26,height:26,borderRadius:"50%",background:p.photo?"transparent":"rgba(200,220,201,0.9)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700,color:"#2d4a35",flexShrink:0,overflow:"hidden"}}>{p.photo?<img src={p.photo} style={{width:"100%",height:"100%",objectFit:"cover"}} alt={p.name}/>:initials(p.name)}</div>
-                        <div><div style={{fontSize:12,fontWeight:500,color:"rgba(255,255,255,0.9)"}}>{p.name}</div><div style={{fontSize:10,color:"rgba(255,255,255,0.4)"}}>{p.breed}</div></div>
-                      </div>
-                    ))}
-                    <button onClick={()=>{setShowAddPet(true);setDrawerOpen(false);}} style={{marginTop:3,padding:"5px 6px",borderRadius:8,border:"1px dashed rgba(255,255,255,0.2)",background:"transparent",color:"rgba(255,255,255,0.45)",fontSize:11,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",display:"flex",alignItems:"center",gap:4,width:"100%"}}><Icon name="plus" size={11} color="currentColor"/>Add pet</button>
-                  </div>
-                )}
-                <nav style={{padding:"8px 12px",borderTop:"1px solid rgba(255,255,255,0.08)",flex:1}}>
-                  <div style={{fontSize:8,letterSpacing:3,textTransform:"uppercase",color:"rgba(255,255,255,0.3)",marginBottom:5,fontWeight:500}}>Navigation</div>
-                  {navItems.map(n=>(
-                    <div key={n.id} onClick={()=>navigate(n.id)} style={{display:"flex",alignItems:"center",gap:8,padding:"8px 6px",borderRadius:8,cursor:"pointer",marginBottom:2,background:page===n.id?"rgba(255,255,255,0.13)":"transparent",color:page===n.id?"#fff":"rgba(255,255,255,0.6)",fontSize:13,fontWeight:page===n.id?500:400}}>
-                      <Icon name={n.icon} size={14} color="currentColor"/>{n.label}
-                    </div>
-                  ))}
-                </nav>
-              </div>
-            </>
+          {/* Mobile bottom tab bar */}
+          {bp.mobile&&(
+            <div style={{position:"fixed",bottom:0,left:0,right:0,height:64,background:t.surface,borderTop:`1px solid ${t.border}`,display:"flex",alignItems:"stretch",zIndex:60,boxShadow:`0 -2px 12px ${t.shadow}`}}>
+              {[
+                {id:"dashboard",label:"Home",icon:"home"},
+                {id:"records",label:"Records",icon:"shield"},
+                {id:"ai",label:"AI Check",icon:"brain"},
+                {id:"weight",label:"Weight",icon:"trending"},
+                {id:"settings",label:"More",icon:"settings"},
+              ].map(n=>(
+                <button key={n.id} onClick={()=>navigate(n.id)} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:3,background:"none",border:"none",cursor:"pointer",color:page===n.id?t.green:t.inkLight,transition:"color 0.15s"}}>
+                  <Icon name={n.icon} size={20} color="currentColor"/>
+                  <span style={{fontSize:9,fontWeight:page===n.id?600:400,letterSpacing:0.3,fontFamily:"'DM Sans',sans-serif"}}>{n.label}</span>
+                </button>
+              ))}
+            </div>
           )}
-          <main style={{flex:1,overflowY:"auto",overflowX:"hidden",padding:bp.mobile?"62px 18px 32px":bp.tablet?"24px 24px":"28px 36px 40px",minWidth:0}}>
+          <main style={{flex:1,overflowY:"auto",overflowX:"hidden",padding:bp.mobile?"58px 16px 76px":bp.tablet?"24px 24px":"28px 36px 40px",minWidth:0,WebkitOverflowScrolling:"touch"}}>
             {page==="dashboard"&&<Dashboard pets={pets} onNavigate={navigate} activePetId={activePetId} setActivePetId={setActivePetId} t={t} bp={bp} userName={userName} onAddPet={()=>setShowAddPet(true)}/>}
             {page==="profile"&&pet&&<PetProfile pet={pet} t={t} bp={bp} onUpdatePet={updatePet} onEditPet={()=>setEditingPet(pet)}/>}
             {page==="records"&&pet&&<Records pet={pet} t={t} bp={bp} onUpdatePet={updatePet}/>}
