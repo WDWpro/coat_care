@@ -19,20 +19,28 @@ const db = getFirestore(app);
 // ── Anthropic proxy ────────────────────────────────────────────────────────────
 // Direct browser calls to Anthropic are blocked; we use a CORS proxy for now
 const callClaude = async (system, userMsg) => {
-  const res = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", "anthropic-dangerous-direct-browser-access": "true" },
-    body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 1000, system, messages: [{ role: "user", content: userMsg }] })
-  });
-  const data = await res.json();
-  return data.content?.find(c => c.type === "text")?.text || "";
+  try {
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "anthropic-dangerous-direct-browser-access": "true" },
+      body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 1000, system, messages: [{ role: "user", content: userMsg }] })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    if (data.error) throw new Error(data.error.message || "API error");
+    return data.content?.find(c => c.type === "text")?.text || "";
+  } catch (e) {
+    console.error("Claude API error:", e);
+    throw new Error("Unable to connect to AI. This feature requires a backend server — coming soon!");
+  }
 };
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 function useBreakpoint() {
   const [w, setW] = useState(typeof window !== "undefined" ? window.innerWidth : 1024);
   useEffect(() => { const fn = () => setW(window.innerWidth); window.addEventListener("resize", fn); return () => window.removeEventListener("resize", fn); }, []);
-  return { mobile: w < 640, tablet: w >= 640 && w < 1024, desktop: w >= 1024, w };
+  // Use 768px as mobile cutoff so iPad (768px+) never triggers mobile mode
+  return { mobile: w < 768, tablet: w >= 768 && w < 1024, desktop: w >= 1024, w };
 }
 const TRIAL_DAYS = 7;
 function getTrialInfo(d) { const e = Math.floor((Date.now() - d) / 864e5); return { remaining: Math.max(0, TRIAL_DAYS - e), expired: e >= TRIAL_DAYS }; }
@@ -220,7 +228,7 @@ function LoginScreen({ onLogin, t, bp }) {
           <div style={{ position: "relative", zIndex: 1 }}>
             <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 36, fontWeight: 700, color: "#fff", lineHeight: 1.2, marginBottom: 20 }}>Your pet's entire<br />health history,<br /><span style={{ fontStyle: "italic", fontWeight: 400 }}>always with you.</span></div>
             <div style={{ marginTop: 32, display: "flex", flexDirection: "column", gap: 14 }}>
-              {["Universal pet health record", "AI-powered symptom guidance", "Instant doc scanning & auto-fill", "Weight tracking & insights", "Vet finder near you"].map(f => (
+              {["Universal pet health record", "AI-powered symptom guidance", "Instant doc scanning & auto-fill", "Weight tracking & insights", "Vet finder near you", "Completely free to use"].map(f => (
                 <div key={f} style={{ display: "flex", alignItems: "center", gap: 10 }}>
                   <div style={{ width: 22, height: 22, borderRadius: "50%", background: "rgba(255,255,255,0.15)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><Icon name="check" size={12} color="#fff" /></div>
                   <span style={{ fontSize: 13, color: "rgba(255,255,255,0.75)", fontWeight: 300 }}>{f}</span>
@@ -237,7 +245,7 @@ function LoginScreen({ onLogin, t, bp }) {
           <div style={{ marginBottom: 28 }}>
             <div style={{ ...S.eyebrow(t), marginBottom: 10, textAlign: "left" }}>{mode === "login" ? "Welcome back" : "Get started"}</div>
             <h1 style={{ fontFamily: "'Playfair Display',serif", fontSize: bp.mobile ? 24 : 30, fontWeight: 700, color: t.ink }}>{mode === "login" ? "Sign in" : "Create your account"}</h1>
-            {mode === "signup" && <p style={{ fontSize: 13, color: t.inkLight, marginTop: 8, fontWeight: 300 }}>Start your <strong style={{ color: t.green }}>7-day free trial</strong> — no credit card required.</p>}
+            {mode === "signup" && <p style={{ fontSize: 13, color: t.inkLight, marginTop: 8, fontWeight: 300 }}>Free to use. No credit card required.</p>}
           </div>
           {mode === "signup" && <div style={{ marginBottom: 16 }}><label style={{ ...S.label(t), textAlign: "left" }}>Your Name</label><input style={{ ...S.input(t, focus === "name"), textAlign: "left" }} placeholder="e.g. Alex Johnson" value={name} onChange={e => setName(e.target.value)} onFocus={() => setFocus("name")} onBlur={() => setFocus(null)} onKeyDown={e => e.key === "Enter" && submit()} /></div>}
           <div style={{ marginBottom: 16 }}><label style={{ ...S.label(t), textAlign: "left" }}>Email</label><input type="email" style={{ ...S.input(t, focus === "email"), textAlign: "left" }} placeholder="you@example.com" value={email} onChange={e => setEmail(e.target.value)} onFocus={() => setFocus("email")} onBlur={() => setFocus(null)} onKeyDown={e => e.key === "Enter" && submit()} /></div>
@@ -262,24 +270,8 @@ function LoginScreen({ onLogin, t, bp }) {
   );
 }
 
-// ── TRIAL BANNER ───────────────────────────────────────────────────────────────
-function TrialBanner({ trialInfo, t }) {
-  const [vis, setVis] = useState(true);
-  if (!vis || trialInfo.expired) return null;
-  return (
-    <div style={{ background: `linear-gradient(90deg,${t.gold},#e8a82e)`, padding: "10px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0 }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-        <Icon name="star" size={14} color="#fff" />
-        <span style={{ fontSize: 13, fontWeight: 500, color: "#fff" }}>{trialInfo.remaining} day{trialInfo.remaining !== 1 ? "s" : ""} left in your free trial</span>
-        <span style={{ fontSize: 12, color: "rgba(255,255,255,0.8)" }}>— $2.99/month after</span>
-      </div>
-      <div style={{ display: "flex", alignItems: "center", gap: 12, flexShrink: 0 }}>
-        <button style={{ fontSize: 12, fontWeight: 600, color: "#fff", background: "rgba(255,255,255,0.2)", border: "1px solid rgba(255,255,255,0.3)", borderRadius: 6, padding: "4px 12px", cursor: "pointer", fontFamily: "'DM Sans',sans-serif" }}>Subscribe</button>
-        <button onClick={() => setVis(false)} style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.7)", display: "flex" }}><Icon name="x" size={14} color="currentColor" /></button>
-      </div>
-    </div>
-  );
-}
+// ── TRIAL BANNER (disabled - app is free) ────────────────────────────────────
+function TrialBanner() { return null; }
 
 // ── ADD RECORD MODAL ───────────────────────────────────────────────────────────
 function AddRecordModal({ onClose, onAdd, tab, t }) {
@@ -353,14 +345,10 @@ function PetModal({ onClose, onSave, existing, t }) {
         {[{ k: "species", label: "Species", opts: ["Dog", "Cat", "Rabbit", "Bird", "Other"] }, { k: "sex", label: "Sex", opts: ["Male", "Female", "Male (neutered)", "Female (spayed)"] }].map(f => (
           <div key={f.k} style={{ marginBottom: 14 }}><label style={S.label(t)}>{f.label}</label><select style={{ ...S.input(t, false), textAlign: "center" }} value={form[f.k]} onChange={e => set(f.k, e.target.value)}>{f.opts.map(o => <option key={o}>{o}</option>)}</select></div>
         ))}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 14 }}>
-          <div><label style={S.label(t)}>Date of Birth</label><input type="date" style={S.input(t, focus === "dob")} value={form.dob} onChange={e => set("dob", e.target.value)} onFocus={() => setFocus("dob")} onBlur={() => setFocus(null)} /></div>
-          <div><label style={S.label(t)}>Weight (lbs)</label><input type="text" style={S.input(t, focus === "weight")} value={form.weight} placeholder="e.g. 48" onChange={e => set("weight", e.target.value)} onFocus={() => setFocus("weight")} onBlur={() => setFocus(null)} /></div>
-        </div>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 14 }}>
-          <div><label style={S.label(t)}>Microchip ID</label><input type="text" style={S.input(t, focus === "microchip")} value={form.microchip || ""} placeholder="Optional" onChange={e => set("microchip", e.target.value)} onFocus={() => setFocus("microchip")} onBlur={() => setFocus(null)} /></div>
-          <div><label style={S.label(t)}>Primary Vet</label><input type="text" style={S.input(t, focus === "vet")} value={form.vet || ""} placeholder="e.g. Dr. Smith" onChange={e => set("vet", e.target.value)} onFocus={() => setFocus("vet")} onBlur={() => setFocus(null)} /></div>
-        </div>
+        <div style={{ marginBottom: 14 }}><label style={S.label(t)}>Date of Birth</label><input type="date" style={S.input(t, focus === "dob")} value={form.dob} onChange={e => set("dob", e.target.value)} onFocus={() => setFocus("dob")} onBlur={() => setFocus(null)} /></div>
+        <div style={{ marginBottom: 14 }}><label style={S.label(t)}>Weight (lbs)</label><input type="text" style={S.input(t, focus === "weight")} value={form.weight} placeholder="e.g. 48" onChange={e => set("weight", e.target.value)} onFocus={() => setFocus("weight")} onBlur={() => setFocus(null)} /></div>
+        <div style={{ marginBottom: 14 }}><label style={S.label(t)}>Microchip ID</label><input type="text" style={S.input(t, focus === "microchip")} value={form.microchip || ""} placeholder="Optional" onChange={e => set("microchip", e.target.value)} onFocus={() => setFocus("microchip")} onBlur={() => setFocus(null)} /></div>
+        <div style={{ marginBottom: 14 }}><label style={S.label(t)}>Primary Vet</label><input type="text" style={S.input(t, focus === "vet")} value={form.vet || ""} placeholder="e.g. Dr. Smith" onChange={e => set("vet", e.target.value)} onFocus={() => setFocus("vet")} onBlur={() => setFocus(null)} /></div>
         <div style={{ display: "flex", gap: 10, justifyContent: "center", marginTop: 8 }}>
           <button onClick={onClose} style={S.btnSecondary(t)}>Cancel</button>
           <button onClick={handleSave} disabled={!form.name || !form.breed} style={{ ...S.btnPrimary(t), opacity: (!form.name || !form.breed) ? 0.5 : 1 }}>{existing ? "Save Changes" : "Add Pet"}</button>
@@ -653,7 +641,7 @@ useState(false);
         `Find vets near: ${q}`
       );
       setResults(JSON.parse(text.replace(/```json|```/g, "").trim()));
-    } catch (e) { setResults([]); }
+    } catch (e) { setResults([]); console.error(e); }
     setLoading(false);
   };
   const useLocation = () => {
@@ -771,7 +759,7 @@ function Documents({ pet, t, bp, onUpdatePet }) {
           }
         </div>
       )}
-      <div style={{ display: "grid", gridTemplateColumns: mob ? "1fr" : "repeat(2,1fr)", gap: 12, maxWidth: 700 }}>
+      <div style={{ display: "grid", gridTemplateColumns: mob ? "1fr" : "repeat(2,1fr)", gap: 12, maxWidth: 700, margin: "0 auto" }}>
         {(pet.documents || []).map((doc, i) => (
           <div key={i} style={{ ...S.card(t), cursor: "pointer", padding: 18, transition: "all 0.18s" }} onMouseEnter={e => { e.currentTarget.style.borderColor = t.greenLight; e.currentTarget.style.transform = "translateY(-2px)"; }} onMouseLeave={e => { e.currentTarget.style.borderColor = t.border; e.currentTarget.style.transform = "translateY(0)"; }}>
             <div style={{ width: 40, height: 40, background: t.surfaceAlt, borderRadius: 9, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 10, border: `1px solid ${t.border}` }}><Icon name="doc" size={18} color={t.inkLight} /></div>
@@ -811,36 +799,18 @@ function Settings({ t, dark, setDark, onLogout, userName, bp }) {
           </div>
         </div>
       </div>
-      <div style={tCard}>
-        <div style={{ ...S.eyebrow(t), marginBottom: 12 }}>Subscription</div>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12, paddingBottom: 12, borderBottom: `1px solid ${t.bgDark}` }}>
-          <div><div style={{ fontSize: 13, fontWeight: 500, color: t.ink }}>Free Trial</div><div style={{ fontSize: 11, color: t.inkLight, marginTop: 1 }}>7 days remaining</div></div>
-          <span style={{ fontSize: 10, padding: "2px 9px", borderRadius: 20, background: t.greenPale, color: t.green, border: `1px solid ${t.greenLight}`, fontWeight: 600 }}>Active</span>
-        </div>
-        <div style={{ background: t.greenPale, border: `1px solid ${t.greenLight}`, borderRadius: 10, padding: "14px 16px", marginBottom: 10 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10 }}>
-            <div>
-              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 3 }}>
-                <div style={{ fontSize: 14, fontWeight: 600, color: t.ink }}>Annual Plan</div>
-                <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: 1, background: t.green, color: "#fff", padding: "2px 8px", borderRadius: 10 }}>BEST VALUE</span>
-              </div>
-              <div style={{ fontSize: 12, color: t.inkLight }}>Save 44% — just $1.67/month</div>
-            </div>
-            <div style={{ textAlign: "right", flexShrink: 0, marginLeft: 12 }}><div style={{ fontFamily: "'Playfair Display',serif", fontSize: 22, fontWeight: 700, color: t.green }}>$19.99</div><div style={{ fontSize: 10, color: t.inkLight }}>per year</div></div>
-          </div>
-          <button style={{ ...S.btnPrimary(t), width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "11px" }}><Icon name="star" size={14} color="#fff" />Subscribe Annually</button>
-        </div>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 2px" }}>
-          <div><div style={{ fontSize: 13, color: t.ink }}>Monthly</div><div style={{ fontSize: 11, color: t.inkLight }}>Cancel anytime</div></div>
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <div style={{ textAlign: "right" }}><div style={{ fontSize: 16, fontWeight: 600, color: t.ink }}>$2.99</div><div style={{ fontSize: 10, color: t.inkLight }}>per month</div></div>
-            <button style={{ ...S.btnSecondary(t), padding: "8px 14px", fontSize: 12 }}>Subscribe</button>
+      <div style={{ ...tCard, background: t.greenPale, border: `1px solid ${t.greenLight}` }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <div style={{ width: 36, height: 36, borderRadius: "50%", background: t.green, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><Icon name="star" size={16} color="#fff" /></div>
+          <div>
+            <div style={{ fontSize: 14, fontWeight: 600, color: t.ink }}>Free — Early Access</div>
+            <div style={{ fontSize: 12, color: t.inkLight, marginTop: 2 }}>Coat & Care is completely free right now. Enjoy full access while we grow.</div>
           </div>
         </div>
       </div>
       <div style={tCard}>
         <div style={{ ...S.eyebrow(t), marginBottom: 10 }}>About</div>
-        {[{ label: "App", val: "Coat & Care" }, { label: "Version", val: "v2.0" }, { label: "AI", val: "Anthropic Claude" }, { label: "Price", val: "$2.99/mo · $19.99/yr" }].map((row, i, arr) => (
+        {[{ label: "App", val: "Coat & Care" }, { label: "Version", val: "v2.0" }, { label: "AI", val: "Anthropic Claude" }, { label: "Access", val: "Free — Early Access" }].map((row, i, arr) => (
           <div key={row.label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: i < arr.length - 1 ? `1px solid ${t.bgDark}` : "none" }}>
             <span style={{ fontSize: 13, color: t.inkLight }}>{row.label}</span>
             <span style={{ fontSize: 13, color: t.ink, fontWeight: 500 }}>{row.val}</span>
@@ -930,7 +900,7 @@ export default function CoatAndCare() {
       <div onClick={() => navigate("dashboard")} style={{ padding: slim ? "16px 0" : "20px 16px 14px", borderBottom: "1px solid rgba(255,255,255,0.08)", textAlign: slim ? "center" : "left", cursor: "pointer", flexShrink: 0 }}>
         {slim
           ? <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 11, fontWeight: 700, color: "#fff" }}>C&C</div>
-          : <><div style={{ fontFamily: "'Playfair Display',serif", fontSize: 17, fontWeight: 700, color: "#fff" }}>Coat & Care</div><div style={{ fontSize: 9, letterSpacing: 2, textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginTop: 3 }}>Pet Health, Simplified</div></>
+          : <><div style={{ fontFamily: "'Playfair Display',serif", fontSize: 17, fontWeight: 700, color: "#fff" }}>Coat & Care</div><div style={{ fontSize: 8, letterSpacing: 1.5, textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginTop: 3, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>Pet Health, Simplified</div></>
         }
       </div>
       {!slim && pets.length > 0 && (
@@ -966,7 +936,7 @@ export default function CoatAndCare() {
     <>
       <GlobalStyles />
       <div style={{ fontFamily: "'DM Sans',sans-serif", background: t.bg, height: "100vh", width: "100vw", display: "flex", flexDirection: "column", color: t.ink, overflow: "hidden" }}>
-        <TrialBanner trialInfo={trialInfo} t={t} />
+        <TrialBanner trialInfo={trialInfo} t={t} mobile={bp.mobile} />
         <div style={{ flex: 1, display: "flex", overflow: "hidden", minHeight: 0 }}>
           {showSidebar && (
             <aside style={{ width: bp.tablet ? 52 : 175, height: "100%", background: t.green, display: "flex", flexDirection: "column", flexShrink: 0, overflowY: "auto", overflowX: "hidden" }}>
