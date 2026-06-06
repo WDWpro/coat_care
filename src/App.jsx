@@ -837,9 +837,11 @@ function Documents({ pet, t, bp, onUpdatePet }) {
           }
         </div>
       )}
-      <div style={{ display: "grid", gridTemplateColumns: mob ? "1fr" : "repeat(2,1fr)", gap: 12, maxWidth: 700, margin: "0 auto", justifyItems: "center" }}>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 12, maxWidth: 700, margin: "0 auto", justifyContent: "center" }}>
         {(pet.documents || []).map((doc, i) => (
-          <DocCard key={i} doc={doc} i={i} pet={pet} t={t} onUpdatePet={onUpdatePet} />
+          <div key={i} style={{ width: mob ? "100%" : "calc(50% - 6px)", minWidth: 200 }}>
+            <DocCard doc={doc} i={i} pet={pet} t={t} onUpdatePet={onUpdatePet} />
+          </div>
         ))}
       </div>
       <div style={{ margin: "12px 0 0", display: "flex", justifyContent: "center" }}>
