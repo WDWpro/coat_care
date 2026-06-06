@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { initializeApp } from "firebase/app";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "firebase/auth";
 import { getFirestore, doc, setDoc, getDoc, updateDoc } from "firebase/firestore";
@@ -74,6 +74,7 @@ const Icon = ({ name, size = 18, color = "currentColor" }) => {
     history: <><polyline points="1 4 1 10 7 10" /><path d="M3.51 15a9 9 0 1 0 .49-4.95" /></>,
     trending: <><polyline points="23 6 13.5 15.5 8.5 10.5 1 18" /><polyline points="17 6 23 6 23 12" /></>,
     sparkle: <><path d="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5L12 3z" /><path d="M5 17l.75 2.25L8 20l-2.25.75L5 23l-.75-2.25L2 20l2.25-.75L5 17z" /></>,
+    trash: <><polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" /><path d="M10 11v6" /><path d="M14 11v6" /><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" /></>,
   };
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{ display: "block", flexShrink: 0 }}>
@@ -146,6 +147,24 @@ const VACCINE_INFO = {
   "FVRCP": { protects: "Feline Viral Rhinotracheitis, Calicivirus, and Panleukopenia.", why: "Panleukopenia is highly contagious and often fatal in cats.", frequency: "Kitten series, then every 1–3 years.", sideEffects: "Mild lethargy for 24–48 hours." },
 };
 const VACCINE_DEFAULT = { protects: "Infectious disease.", why: "Recommended by veterinarians as preventative care.", frequency: "Your vet will advise.", sideEffects: "Mild soreness and brief lethargy." };
+
+// ── ERROR BOUNDARY ────────────────────────────────────────────────────────────
+class ErrorBoundary extends React.Component {
+  constructor(props) { super(props); this.state = { hasError: false }; }
+  static getDerivedStateFromError() { return { hasError: true }; }
+  componentDidCatch(e) { console.error("Page crashed:", e); }
+  render() {
+    if (this.state.hasError) return (
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "60vh", gap: 16, textAlign: "center", padding: 32 }}>
+        <div style={{ fontSize: 32 }}>⚠️</div>
+        <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 20, fontWeight: 700, color: this.props.ink }}>Something went wrong</div>
+        <div style={{ fontSize: 14, color: this.props.inkLight, maxWidth: 280 }}>This feature couldn't load. Try going back to the home screen.</div>
+        <button onClick={() => { this.setState({ hasError: false }); this.props.onBack(); }} style={{ padding: "11px 24px", background: this.props.green, color: "#fff", border: "none", borderRadius: 10, fontSize: 14, cursor: "pointer", fontFamily: "'DM Sans',sans-serif" }}>Go Home</button>
+      </div>
+    );
+    return this.props.children;
+  }
+}
 
 // ── ONBOARDING ─────────────────────────────────────────────────────────────────
 function OnboardingScreen({ onDone, t, bp }) {
@@ -425,7 +444,7 @@ function Dashboard({ pets, onNavigate, activePetId, setActivePetId, t, bp, userN
         <div style={{ fontSize: 10, letterSpacing: 3, textTransform: "uppercase", color: "rgba(255,255,255,0.5)", marginBottom: 5 }}>Active Profile</div>
         <div style={{ fontFamily: "'Playfair Display',serif", fontSize: mob ? 20 : 24, fontWeight: 700, color: "#fff", marginBottom: 3 }}>{pet.name}</div>
         <div style={{ fontSize: 13, color: "rgba(255,255,255,0.6)", fontWeight: 300 }}>{pet.breed}{pet.dob ? ` — ${getAge(pet.dob)} old` : ""}</div>
-        <div style={{ marginTop: 14, display: "flex", gap: 8, flexWrap: "wrap" }}>
+        <div style={{ marginTop: 14, display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "center" }}>
           {[{ l: "View Profile", p: "profile" }, { l: "Symptom Check", p: "ai" }, { l: "Weight", p: "weight" }].map(b => (
             <button key={b.p} onClick={() => onNavigate(b.p)} style={{ padding: "8px 16px", background: "rgba(255,255,255,0.12)", color: "#fff", border: "1px solid rgba(255,255,255,0.2)", borderRadius: 10, fontSize: 12, cursor: "pointer", fontFamily: "'DM Sans',sans-serif" }}>{b.l}</button>
           ))}
@@ -761,7 +780,10 @@ function Documents({ pet, t, bp, onUpdatePet }) {
       )}
       <div style={{ display: "grid", gridTemplateColumns: mob ? "1fr" : "repeat(2,1fr)", gap: 12, maxWidth: 700, margin: "0 auto" }}>
         {(pet.documents || []).map((doc, i) => (
-          <div key={i} style={{ ...S.card(t), cursor: "pointer", padding: 18, transition: "all 0.18s" }} onMouseEnter={e => { e.currentTarget.style.borderColor = t.greenLight; e.currentTarget.style.transform = "translateY(-2px)"; }} onMouseLeave={e => { e.currentTarget.style.borderColor = t.border; e.currentTarget.style.transform = "translateY(0)"; }}>
+          <div key={i} style={{ ...S.card(t), padding: 18, transition: "all 0.18s", position: "relative" }} onMouseEnter={e => { e.currentTarget.style.borderColor = t.greenLight; }} onMouseLeave={e => { e.currentTarget.style.borderColor = t.border; }}>
+            <button onClick={() => { if(window.confirm(`Delete "${doc.name}"? This cannot be undone.`)) { onUpdatePet(pet.id, { documents: (pet.documents || []).filter((_, j) => j !== i) }); } }} style={{ position: "absolute", top: 10, right: 10, background: "none", border: "none", cursor: "pointer", color: t.inkLight, padding: 4, display: "flex", borderRadius: 6 }} onMouseEnter={e => { e.currentTarget.style.color = t.rust; }} onMouseLeave={e => { e.currentTarget.style.color = t.inkLight; }}>
+              <Icon name="trash" size={14} color="currentColor" />
+            </button>
             <div style={{ width: 40, height: 40, background: t.surfaceAlt, borderRadius: 9, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 10, border: `1px solid ${t.border}` }}><Icon name="doc" size={18} color={t.inkLight} /></div>
             <div style={{ fontSize: 14, fontWeight: 500, color: t.ink, marginBottom: 3 }}>{doc.name}</div>
             <div style={{ fontSize: 12, color: t.inkLight, fontWeight: 300 }}>{doc.type} · {doc.size} · {doc.date}</div>
@@ -788,7 +810,7 @@ function Settings({ t, dark, setDark, onLogout, userName, bp }) {
       <div style={{ ...tCard, background: t.greenPale, border: `1px solid ${t.greenLight}` }}>
         <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
           <div style={{ width: 44, height: 44, borderRadius: "50%", background: t.green, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Playfair Display',serif", fontSize: 18, fontWeight: 700, color: "#fff", flexShrink: 0 }}>{(userName || "U").charAt(0).toUpperCase()}</div>
-          <div><div style={{ fontSize: 15, fontWeight: 600, color: t.ink }}>{userName || "Your Account"}</div><div style={{ fontSize: 12, color: t.inkLight, marginTop: 2 }}>Free trial — 7 days remaining</div></div>
+          <div><div style={{ fontSize: 15, fontWeight: 600, color: t.ink }}>{userName || "Your Account"}</div><div style={{ fontSize: 12, color: t.inkLight, marginTop: 2 }}>Early Access Member</div></div>
         </div>
       </div>
       <div style={tCard}>
@@ -799,14 +821,10 @@ function Settings({ t, dark, setDark, onLogout, userName, bp }) {
           </div>
         </div>
       </div>
-      <div style={{ ...tCard, background: t.greenPale, border: `1px solid ${t.greenLight}` }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <div style={{ width: 36, height: 36, borderRadius: "50%", background: t.green, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><Icon name="star" size={16} color="#fff" /></div>
-          <div>
-            <div style={{ fontSize: 14, fontWeight: 600, color: t.ink }}>Free — Early Access</div>
-            <div style={{ fontSize: 12, color: t.inkLight, marginTop: 2 }}>Coat & Care is completely free right now. Enjoy full access while we grow.</div>
-          </div>
-        </div>
+      <div style={{ ...tCard, background: t.greenPale, border: `1px solid ${t.greenLight}`, textAlign: "center" }}>
+        <div style={{ width: 40, height: 40, borderRadius: "50%", background: t.green, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 10px" }}><Icon name="star" size={18} color="#fff" /></div>
+        <div style={{ fontSize: 15, fontWeight: 600, color: t.ink, marginBottom: 4 }}>Free — Early Access</div>
+        <div style={{ fontSize: 12, color: t.inkLight }}>Coat & Care is completely free right now. Enjoy full access while we grow.</div>
       </div>
       <div style={tCard}>
         <div style={{ ...S.eyebrow(t), marginBottom: 10 }}>About</div>
@@ -966,8 +984,8 @@ export default function CoatAndCare() {
             {page === "profile" && pet && <PetProfile pet={pet} t={t} bp={bp} onUpdatePet={updatePet} onEditPet={() => setEditingPet(pet)} />}
             {page === "records" && pet && <Records pet={pet} t={t} bp={bp} onUpdatePet={updatePet} />}
             {page === "weight" && pet && <WeightTracker pet={pet} t={t} bp={bp} onUpdatePet={updatePet} />}
-            {page === "ai" && pet && <AIChecker pet={pet} t={t} bp={bp} onUpdatePet={updatePet} />}
-            {page === "vets" && <VetFinder t={t} bp={bp} />}
+            {page === "ai" && pet && <ErrorBoundary ink={t.ink} inkLight={t.inkLight} green={t.green} onBack={() => navigate("dashboard")}><AIChecker pet={pet} t={t} bp={bp} onUpdatePet={updatePet} /></ErrorBoundary>}
+            {page === "vets" && <ErrorBoundary ink={t.ink} inkLight={t.inkLight} green={t.green} onBack={() => navigate("dashboard")}><VetFinder t={t} bp={bp} /></ErrorBoundary>}
             {page === "documents" && pet && <Documents pet={pet} t={t} bp={bp} onUpdatePet={updatePet} />}
             {page === "settings" && <Settings t={t} dark={dark} setDark={setDark} onLogout={handleLogout} userName={userName} bp={bp} />}
             {needsPet && (
