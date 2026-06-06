@@ -736,7 +736,7 @@ function DocCard({ doc, i, pet, t, onUpdatePet }) {
     onUpdatePet(pet.id, { documents: (pet.documents || []).filter((_, j) => j !== i) });
   };
   return (
-    <div style={{ ...S.card(t), padding: 0, overflow: "hidden", transition: "all 0.18s", position: "relative" }}>
+    <div style={{ ...S.card(t), padding: 0, overflow: "hidden", transition: "all 0.18s", position: "relative", width: "100%" }}>
       {/* Image preview or icon */}
       {isImage && doc.preview
         ? <div style={{ width: "100%", height: 120, backgroundImage: `url(${doc.preview})`, backgroundSize: "cover", backgroundPosition: "center" }} />
@@ -837,7 +837,7 @@ function Documents({ pet, t, bp, onUpdatePet }) {
           }
         </div>
       )}
-      <div style={{ display: "grid", gridTemplateColumns: mob ? "1fr" : "repeat(2,1fr)", gap: 12, maxWidth: 700, margin: "0 auto" }}>
+      <div style={{ display: "grid", gridTemplateColumns: mob ? "1fr" : "repeat(2,1fr)", gap: 12, maxWidth: 700, margin: "0 auto", justifyItems: "center" }}>
         {(pet.documents || []).map((doc, i) => (
           <DocCard key={i} doc={doc} i={i} pet={pet} t={t} onUpdatePet={onUpdatePet} />
         ))}
