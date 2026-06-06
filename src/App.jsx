@@ -763,33 +763,6 @@ function DocCard({ doc, i, pet, t, onUpdatePet }) {
 }
 
 // ── DOC CARD ───────────────────────────────────────────────────────────────────
-function DocCard({ doc, i, pet, t, onUpdatePet }) {
-  const [confirmDelete, setConfirmDelete] = useState(false);
-  const isImage = ["JPG","PNG","JPEG","WEBP","GIF"].includes(doc.type);
-  const doDelete = () => onUpdatePet(pet.id, { documents: (pet.documents || []).filter((_, j) => j !== i) });
-  return (
-    <div style={{ ...S.card(t), padding: 0, overflow: "hidden", position: "relative" }}>
-      {isImage && doc.preview
-        ? <div style={{ width: "100%", height: 120, backgroundImage: `url(${doc.preview})`, backgroundSize: "cover", backgroundPosition: "center" }} />
-        : <div style={{ width: "100%", height: 80, background: t.surfaceAlt, display: "flex", alignItems: "center", justifyContent: "center", borderBottom: `1px solid ${t.border}` }}><Icon name="doc" size={28} color={t.inkLight} /></div>
-      }
-      <div style={{ padding: "12px 14px" }}>
-        <div style={{ fontSize: 13, fontWeight: 500, color: t.ink, marginBottom: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{doc.name}</div>
-        <div style={{ fontSize: 11, color: t.inkLight }}>{doc.type} · {doc.size} · {doc.date}</div>
-        {!confirmDelete
-          ? <button onClick={() => setConfirmDelete(true)} style={{ marginTop: 8, fontSize: 11, color: t.inkLight, background: "none", border: "none", cursor: "pointer", fontFamily: "'DM Sans',sans-serif", display: "flex", alignItems: "center", gap: 4, padding: 0 }}><Icon name="trash" size={12} color="currentColor" />Delete</button>
-          : <div style={{ marginTop: 8, background: t.rustLight, border: `1px solid ${t.rust}22`, borderRadius: 8, padding: "8px 10px" }}>
-              <div style={{ fontSize: 11, color: t.rust, marginBottom: 6, lineHeight: 1.4 }}>Permanently delete this document? This cannot be undone.</div>
-              <div style={{ display: "flex", gap: 6 }}>
-                <button onClick={doDelete} style={{ fontSize: 11, padding: "4px 10px", background: t.rust, color: "#fff", border: "none", borderRadius: 6, cursor: "pointer", fontFamily: "'DM Sans',sans-serif", fontWeight: 500 }}>Delete</button>
-                <button onClick={() => setConfirmDelete(false)} style={{ fontSize: 11, padding: "4px 10px", background: "none", border: `1px solid ${t.border}`, borderRadius: 6, cursor: "pointer", color: t.inkMid, fontFamily: "'DM Sans',sans-serif" }}>Cancel</button>
-              </div>
-            </div>
-        }
-      </div>
-    </div>
-  );
-}
 
 // ── DOCUMENTS ──────────────────────────────────────────────────────────────────
 function Documents({ pet, t, bp, onUpdatePet }) {
