@@ -653,14 +653,14 @@ function AIChecker({ pet, t, bp, onUpdatePet }) {
 useState(false);
   const search = async (q) => {
     if (!q.trim()) return;
-    setLoading(true);
+    setLoading(true); setError("");
     try {
       const text = await callClaude(
         "Generate 5 realistic fictional veterinary clinic listings for the given location. Respond ONLY with a JSON array, no markdown. Each item: {name, address, phone, specialty, rating, hours}.",
         `Find vets near: ${q}`
       );
       setResults(JSON.parse(text.replace(/```json|```/g, "").trim()));
-    } catch (e) { setResults([]); console.error(e); }
+    } catch (e) { setResults([]); setError(e.message || "Unable to search for vets. This feature requires a backend server — coming soon!"); console.error(e); }
     setLoading(false);
   };
   const useLocation = () => {
@@ -679,6 +679,7 @@ useState(false);
         </div>
         <button onClick={useLocation} style={{ marginTop: 10, display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: t.green, background: "none", border: "none", cursor: "pointer", fontFamily: "'DM Sans',sans-serif", fontWeight: 500 }}><Icon name="map" size={14} color={t.green} />Use my location</button>
       </div>
+      {error && !loading && <div style={{ background: t.rustLight, border: `1px solid ${t.rust}`, borderRadius: 10, padding: "12px 16px", marginTop: 14, fontSize: 13, color: t.rust }}>{error}</div>}
       {loading && <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "18px 0", color: t.inkLight, fontSize: 13, fontStyle: "italic" }}>{[0, 200, 400].map(d => <div key={d} style={{ width: 6, height: 6, borderRadius: "50%", background: t.green, animation: `pulse 1.2s ease-in-out ${d}ms infinite` }} />)}<span>Finding vets nearby...</span></div>}
       {results.length > 0 && !loading && (
         <div style={{ marginTop: 16, display: "flex", flexDirection: "column", gap: 12 }}>
@@ -705,6 +706,40 @@ useState(false);
   );
 }
 
+// ── DOC CARD ───────────────────────────────────────────────────────────────────
+function DocCard({ doc, i, pet, t, onUpdatePet }) {
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const isImage = doc.type === "JPG" || doc.type === "PNG" || doc.type === "JPEG" || doc.type === "WEBP" || doc.type === "GIF";
+  const doDelete = () => {
+    onUpdatePet(pet.id, { documents: (pet.documents || []).filter((_, j) => j !== i) });
+  };
+  return (
+    <div style={{ ...S.card(t), padding: 0, overflow: "hidden", transition: "all 0.18s", position: "relative" }}>
+      {/* Image preview or icon */}
+      {isImage && doc.preview
+        ? <div style={{ width: "100%", height: 120, backgroundImage: `url(${doc.preview})`, backgroundSize: "cover", backgroundPosition: "center" }} />
+        : <div style={{ width: "100%", height: 80, background: t.surfaceAlt, display: "flex", alignItems: "center", justifyContent: "center", borderBottom: `1px solid ${t.border}` }}><Icon name="doc" size={28} color={t.inkLight} /></div>
+      }
+      <div style={{ padding: "12px 14px" }}>
+        <div style={{ fontSize: 13, fontWeight: 500, color: t.ink, marginBottom: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{doc.name}</div>
+        <div style={{ fontSize: 11, color: t.inkLight, fontWeight: 300 }}>{doc.type} · {doc.size} · {doc.date}</div>
+        {!confirmDelete
+          ? <button onClick={() => setConfirmDelete(true)} style={{ marginTop: 10, fontSize: 11, color: t.inkLight, background: "none", border: "none", cursor: "pointer", fontFamily: "'DM Sans',sans-serif", display: "flex", alignItems: "center", gap: 4, padding: 0 }}>
+              <Icon name="trash" size={12} color="currentColor" />Delete
+            </button>
+          : <div style={{ marginTop: 10, background: t.rustLight, border: `1px solid ${t.rust}22`, borderRadius: 8, padding: "8px 10px" }}>
+              <div style={{ fontSize: 11, color: t.rust, marginBottom: 8, lineHeight: 1.4 }}>Permanently delete this document? This cannot be undone.</div>
+              <div style={{ display: "flex", gap: 6 }}>
+                <button onClick={doDelete} style={{ fontSize: 11, padding: "4px 10px", background: t.rust, color: "#fff", border: "none", borderRadius: 6, cursor: "pointer", fontFamily: "'DM Sans',sans-serif", fontWeight: 500 }}>Delete</button>
+                <button onClick={() => setConfirmDelete(false)} style={{ fontSize: 11, padding: "4px 10px", background: "none", border: `1px solid ${t.border}`, borderRadius: 6, cursor: "pointer", color: t.inkMid, fontFamily: "'DM Sans',sans-serif" }}>Cancel</button>
+              </div>
+            </div>
+        }
+      </div>
+    </div>
+  );
+}
+
 // ── DOCUMENTS ──────────────────────────────────────────────────────────────────
 function Documents({ pet, t, bp, onUpdatePet }) {
   const mob = bp.mobile;
@@ -714,7 +749,9 @@ function Documents({ pet, t, bp, onUpdatePet }) {
   const handleUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    const newDoc = { name: file.name.replace(/\.[^/.]+$/, ""), date: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }), type: file.name.split(".").pop().toUpperCase(), size: `${(file.size / 1024).toFixed(0)} KB` };
+    const isImg = file.type.startsWith("image/");
+    const preview = isImg ? await new Promise((res) => { const r = new FileReader(); r.onload = (ev) => res(ev.target.result); r.readAsDataURL(file); }) : null;
+    const newDoc = { name: file.name.replace(/\.[^/.]+$/, ""), date: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }), type: file.name.split(".").pop().toUpperCase(), size: `${(file.size / 1024).toFixed(0)} KB`, preview };
     onUpdatePet(pet.id, { documents: [...(pet.documents || []), newDoc] });
     if (file.type.startsWith("image/") || file.type === "application/pdf") {
       setScanning(true); setScanResult(null);
@@ -780,14 +817,7 @@ function Documents({ pet, t, bp, onUpdatePet }) {
       )}
       <div style={{ display: "grid", gridTemplateColumns: mob ? "1fr" : "repeat(2,1fr)", gap: 12, maxWidth: 700, margin: "0 auto" }}>
         {(pet.documents || []).map((doc, i) => (
-          <div key={i} style={{ ...S.card(t), padding: 18, transition: "all 0.18s", position: "relative" }} onMouseEnter={e => { e.currentTarget.style.borderColor = t.greenLight; }} onMouseLeave={e => { e.currentTarget.style.borderColor = t.border; }}>
-            <button onClick={() => { if(window.confirm(`Delete "${doc.name}"? This cannot be undone.`)) { onUpdatePet(pet.id, { documents: (pet.documents || []).filter((_, j) => j !== i) }); } }} style={{ position: "absolute", top: 10, right: 10, background: "none", border: "none", cursor: "pointer", color: t.inkLight, padding: 4, display: "flex", borderRadius: 6 }} onMouseEnter={e => { e.currentTarget.style.color = t.rust; }} onMouseLeave={e => { e.currentTarget.style.color = t.inkLight; }}>
-              <Icon name="trash" size={14} color="currentColor" />
-            </button>
-            <div style={{ width: 40, height: 40, background: t.surfaceAlt, borderRadius: 9, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 10, border: `1px solid ${t.border}` }}><Icon name="doc" size={18} color={t.inkLight} /></div>
-            <div style={{ fontSize: 14, fontWeight: 500, color: t.ink, marginBottom: 3 }}>{doc.name}</div>
-            <div style={{ fontSize: 12, color: t.inkLight, fontWeight: 300 }}>{doc.type} · {doc.size} · {doc.date}</div>
-          </div>
+          <DocCard key={i} doc={doc} i={i} pet={pet} t={t} onUpdatePet={onUpdatePet} />
         ))}
         <div style={{ ...S.card(t), border: `1.5px dashed ${t.border}`, background: "transparent", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", gap: 8, padding: 32, cursor: "pointer", transition: "all 0.18s", minHeight: 120 }} onClick={() => fileRef.current.click()} onMouseEnter={e => { e.currentTarget.style.borderColor = t.green; e.currentTarget.style.background = t.greenPale; }} onMouseLeave={e => { e.currentTarget.style.borderColor = t.border; e.currentTarget.style.background = "transparent"; }}>
           <Icon name="upload" size={22} color={t.inkLight} />
@@ -807,7 +837,7 @@ function Settings({ t, dark, setDark, onLogout, userName, bp }) {
   return (
     <div style={{ animation: "fadeUp 0.35s ease", display: "flex", flexDirection: "column", alignItems: mob ? "stretch" : "center" }}>
       <div style={{ ...wrap, marginBottom: 24 }}><div style={S.eyebrow(t)}>Account</div><h1 style={S.pageTitle(t, mob)}>Settings</h1></div>
-      <div style={{ ...tCard, background: t.greenPale, border: `1px solid ${t.greenLight}` }}>
+      <div style={{ ...tCard, background: t.greenPale, border: `1px solid ${t.greenLight}`, textAlign: "left" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
           <div style={{ width: 44, height: 44, borderRadius: "50%", background: t.green, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Playfair Display',serif", fontSize: 18, fontWeight: 700, color: "#fff", flexShrink: 0 }}>{(userName || "U").charAt(0).toUpperCase()}</div>
           <div><div style={{ fontSize: 15, fontWeight: 600, color: t.ink }}>{userName || "Your Account"}</div><div style={{ fontSize: 12, color: t.inkLight, marginTop: 2 }}>Early Access Member</div></div>
