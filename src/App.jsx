@@ -841,6 +841,8 @@ function Documents({ pet, t, bp, onUpdatePet }) {
         {(pet.documents || []).map((doc, i) => (
           <DocCard key={i} doc={doc} i={i} pet={pet} t={t} onUpdatePet={onUpdatePet} />
         ))}
+      </div>
+      <div style={{ maxWidth: 700, margin: "12px auto 0" }}>
         <div style={{ ...S.card(t), border: `1.5px dashed ${t.border}`, background: "transparent", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", gap: 8, padding: 32, cursor: "pointer", transition: "all 0.18s", minHeight: 120 }} onClick={() => fileRef.current.click()} onMouseEnter={e => { e.currentTarget.style.borderColor = t.green; e.currentTarget.style.background = t.greenPale; }} onMouseLeave={e => { e.currentTarget.style.borderColor = t.border; e.currentTarget.style.background = "transparent"; }}>
           <Icon name="upload" size={22} color={t.inkLight} />
           <div style={{ fontSize: 13, color: t.inkLight }}>Upload a document<br /><span style={{ fontSize: 11 }}>PDF, JPG, PNG</span></div>
