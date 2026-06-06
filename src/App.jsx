@@ -871,7 +871,7 @@ function Settings({ t, dark, setDark, onLogout, userName, bp }) {
       </div>
       <div style={tCard}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <div><div style={{ fontSize: 14, fontWeight: 500, color: t.ink }}>Dark Mode</div><div style={{ fontSize: 11, color: t.inkLight, marginTop: 2 }}>Use a darker color scheme</div></div>
+          <div><div style={{ fontSize: 14, fontWeight: 500, color: t.ink, display: "flex", alignItems: "center", gap: 6 }}><Icon name="moon" size={14} color={t.inkLight} />Dark Mode</div><div style={{ fontSize: 11, color: t.inkLight, marginTop: 2 }}>Use a darker color scheme</div></div>
           <div onClick={() => setDark(d => !d)} style={{ width: 44, height: 26, borderRadius: 13, background: dark ? t.green : t.border, position: "relative", cursor: "pointer", transition: "background 0.25s", flexShrink: 0 }}>
             <div style={{ position: "absolute", top: 3, left: dark ? 20 : 3, width: 20, height: 20, borderRadius: "50%", background: "#fff", boxShadow: "0 1px 4px rgba(0,0,0,0.25)", transition: "left 0.25s" }} />
           </div>
