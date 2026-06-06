@@ -75,6 +75,7 @@ const Icon = ({ name, size = 18, color = "currentColor" }) => {
     trending: <><polyline points="23 6 13.5 15.5 8.5 10.5 1 18" /><polyline points="17 6 23 6 23 12" /></>,
     sparkle: <><path d="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5L12 3z" /><path d="M5 17l.75 2.25L8 20l-2.25.75L5 23l-.75-2.25L2 20l2.25-.75L5 17z" /></>,
     trash: <><polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" /><path d="M10 11v6" /><path d="M14 11v6" /><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" /></>,
+    trash: <><polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" /><path d="M10 11v6" /><path d="M14 11v6" /><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" /></>,
   };
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{ display: "block", flexShrink: 0 }}>
@@ -650,58 +651,79 @@ function AIChecker({ pet, t, bp, onUpdatePet }) {
   const [symptoms, setSymptoms] = useState("");
   const [response, setResponse] = useState("");
   const [loading, setLoading] = useState(false);
-useState(false);
-  const search = async (q) => {
-    if (!q.trim()) return;
-    setLoading(true); setError("");
+  const [focused, setFocused] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
+  const mob = bp.mobile;
+  const history = pet.symptomHistory || [];
+  const submit = async () => {
+    if (!symptoms.trim()) return;
+    setLoading(true); setResponse("");
     try {
       const text = await callClaude(
-        "Generate 5 realistic fictional veterinary clinic listings for the given location. Respond ONLY with a JSON array, no markdown. Each item: {name, address, phone, specialty, rating, hours}.",
-        `Find vets near: ${q}`
+        `You are a veterinary assistant helping with ${pet.name}, a ${getAge(pet.dob)} old ${pet.breed} (${pet.species}). Give a clear urgency level: "Monitor at home", "Schedule a vet visit soon", or "Seek emergency care now". Use plain paragraphs, no markdown. Remind them you are not a substitute for professional care.`,
+        `${pet.name}'s symptoms: ${symptoms}`
       );
-      setResults(JSON.parse(text.replace(/```json|```/g, "").trim()));
-    } catch (e) { setResults([]); setError(e.message || "Unable to search for vets. This feature requires a backend server — coming soon!"); console.error(e); }
+      setResponse(text || "Unable to generate a response.");
+      onUpdatePet(pet.id, { symptomHistory: [{ date: new Date().toISOString(), symptoms: symptoms.trim(), response: text }, ...(pet.symptomHistory || [])].slice(0, 20) });
+    } catch (e) { setResponse(e.message || "Something went wrong. Please try again."); }
     setLoading(false);
-  };
-  const useLocation = () => {
-    if (!navigator.geolocation) return;
-    setLoading(true);
-    navigator.geolocation.getCurrentPosition(pos => { const q = `${pos.coords.latitude.toFixed(4)},${pos.coords.longitude.toFixed(4)}`; setQuery(q); search(q); }, () => setLoading(false));
   };
   return (
     <div style={{ animation: "fadeUp 0.35s ease" }}>
-      <div style={{ marginBottom: 20 }}><div style={S.eyebrow(t)}>Vet Finder</div><h1 style={S.pageTitle(t, mob)}>Find a Vet</h1><p style={S.pageSub(t)}>Search for veterinary clinics near you.</p></div>
-      <div style={S.card(t)}>
-        <label style={{ ...S.label(t), textAlign: "left" }}>Location or Zip Code</label>
-        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-          <input style={{ ...S.input(t, focused), flex: 1, minWidth: 160, textAlign: "left" }} value={query} placeholder="e.g. 10001 or Boston, MA" onChange={e => setQuery(e.target.value)} onFocus={() => setFocused(true)} onBlur={() => setFocused(false)} onKeyDown={e => e.key === "Enter" && search(query)} />
-          <button onClick={() => search(query)} disabled={!query.trim() || loading} style={{ ...S.btnPrimary(t), opacity: (!query.trim() || loading) ? 0.5 : 1, flexShrink: 0 }}>{loading ? "Searching..." : "Search"}</button>
-        </div>
-        <button onClick={useLocation} style={{ marginTop: 10, display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: t.green, background: "none", border: "none", cursor: "pointer", fontFamily: "'DM Sans',sans-serif", fontWeight: 500 }}><Icon name="map" size={14} color={t.green} />Use my location</button>
+      <div style={{ marginBottom: 20, display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+        <div><div style={S.eyebrow(t)}>AI Health Assistant</div><h1 style={S.pageTitle(t, mob)}>Symptom Checker</h1><p style={S.pageSub(t)}>Describe what you're observing. Get clear, calm guidance.</p></div>
+        {history.length > 0 && <button onClick={() => setShowHistory(v => !v)} style={{ ...S.btnSecondary(t), fontSize: 12, display: "flex", alignItems: "center", gap: 6, flexShrink: 0, marginTop: 4 }}><Icon name="history" size={14} color="currentColor" />{showHistory ? "Hide" : `History (${history.length})`}</button>}
       </div>
-      {error && !loading && <div style={{ background: t.rustLight, border: `1px solid ${t.rust}`, borderRadius: 10, padding: "12px 16px", marginTop: 14, fontSize: 13, color: t.rust }}>{error}</div>}
-      {loading && <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "18px 0", color: t.inkLight, fontSize: 13, fontStyle: "italic" }}>{[0, 200, 400].map(d => <div key={d} style={{ width: 6, height: 6, borderRadius: "50%", background: t.green, animation: `pulse 1.2s ease-in-out ${d}ms infinite` }} />)}<span>Finding vets nearby...</span></div>}
-      {results.length > 0 && !loading && (
-        <div style={{ marginTop: 16, display: "flex", flexDirection: "column", gap: 12 }}>
-          {results.map((vet, i) => (
-            <div key={i} style={{ ...S.card(t), padding: 18 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, flexWrap: "wrap" }}>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 16, fontWeight: 700, color: t.ink, marginBottom: 3 }}>{vet.name}</div>
-                  <div style={{ fontSize: 12, color: t.inkLight, marginBottom: 6 }}>{vet.address}</div>
-                  {vet.specialty && <span style={{ fontSize: 11, padding: "2px 8px", borderRadius: 20, background: t.greenPale, color: t.green, border: `1px solid ${t.greenLight}`, fontWeight: 500 }}>{vet.specialty}</span>}
-                </div>
-                <div style={{ textAlign: "right", flexShrink: 0 }}>
-                  <div style={{ fontSize: 14, fontWeight: 600, color: t.gold }}>★ {vet.rating}</div>
-                  <div style={{ fontSize: 11, color: t.inkLight, marginTop: 2 }}>{vet.hours}</div>
-                </div>
+      {showHistory && history.length > 0 && (
+        <div style={{ ...S.card(t), marginBottom: 20 }}>
+          <div style={{ ...S.eyebrow(t), marginBottom: 12 }}>Past Checks</div>
+          {history.slice(0, 5).map((h, i) => (
+            <div key={i} style={{ padding: "12px 0", borderBottom: i < Math.min(history.length, 5) - 1 ? `1px solid ${t.bgDark}` : "none" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
+                <div style={{ fontSize: 13, fontWeight: 500, color: t.ink, flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", paddingRight: 12 }}>{h.symptoms}</div>
+                <div style={{ fontSize: 11, color: t.inkLight, flexShrink: 0 }}>{fmtDate(h.date.split("T")[0])}</div>
               </div>
-              {vet.phone && <div style={{ marginTop: 10, paddingTop: 10, borderTop: `1px solid ${t.bgDark}` }}><a href={`tel:${vet.phone}`} style={{ fontSize: 13, color: t.green, fontWeight: 500, textDecoration: "none" }}>{vet.phone}</a></div>}
+              <div style={{ fontSize: 12, color: t.inkLight, lineHeight: 1.5, overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>{h.response}</div>
             </div>
           ))}
-          <div style={{ fontSize: 11, color: t.inkLight, textAlign: "center", fontStyle: "italic" }}>AI-generated suggestions. Verify before visiting.</div>
         </div>
       )}
+      <div style={{ background: `linear-gradient(135deg,${t.greenPale},${t.surface})`, border: `1px solid ${t.greenLight}`, borderRadius: 16, padding: 20, marginBottom: 20 }}>
+        <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 17, fontWeight: 600, color: t.green, marginBottom: 6 }}>Reviewing symptoms for {pet.name}</div>
+        <div style={{ fontSize: 13, color: t.inkLight, lineHeight: 1.6, fontWeight: 300 }}>Describe symptoms in plain language — when they started, how severe, and anything else noticed.</div>
+        <div style={{ fontSize: 11, color: t.rust, marginTop: 8, fontStyle: "italic" }}>This tool does not replace professional veterinary advice.</div>
+      </div>
+      <div style={S.card(t)}>
+        <label style={{ ...S.label(t), textAlign: "left" }}>Describe the symptoms</label>
+        <textarea value={symptoms} onChange={e => setSymptoms(e.target.value)} onFocus={() => setFocused(true)} onBlur={() => setFocused(false)} rows={5} placeholder={`e.g. "${pet.name} has been lethargic since this morning, refusing food..."`} style={{ width: "100%", minHeight: 100, border: `1.5px solid ${focused ? t.green : t.border}`, borderRadius: 12, padding: 14, fontFamily: "'DM Sans',sans-serif", fontSize: 14, color: t.ink, background: t.inputBg, resize: "vertical", outline: "none", lineHeight: 1.6 }} />
+        <button onClick={submit} disabled={loading || !symptoms.trim()} style={{ ...S.btnPrimary(t), marginTop: 12, opacity: (loading || !symptoms.trim()) ? 0.5 : 1 }}>{loading ? "Analyzing..." : "Analyze Symptoms"}</button>
+      </div>
+      {loading && <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "18px 0", color: t.inkLight, fontSize: 13, fontStyle: "italic" }}>{[0, 200, 400].map(d => <div key={d} style={{ width: 6, height: 6, borderRadius: "50%", background: t.green, animation: `pulse 1.2s ease-in-out ${d}ms infinite` }} />)}<span>Analyzing symptoms...</span></div>}
+      {response && !loading && (
+        <div style={{ ...S.card(t), marginTop: 20, animation: "popIn 0.3s ease" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14, paddingBottom: 12, borderBottom: `1px solid ${t.bgDark}` }}>
+            <span style={{ fontSize: 9, letterSpacing: 2, textTransform: "uppercase", background: t.greenPale, color: t.green, padding: "4px 10px", borderRadius: 20, fontWeight: 600, border: `1px solid ${t.greenLight}` }}>AI Assessment</span>
+            <span style={{ fontSize: 12, color: t.inkLight, fontFamily: "monospace" }}>{pet.name} · {pet.breed}</span>
+          </div>
+          <div style={{ fontSize: 14, color: t.inkMid, lineHeight: 1.8, whiteSpace: "pre-wrap", fontWeight: 300 }}>{response}</div>
+          <div style={{ marginTop: 16, paddingTop: 14, borderTop: `1px solid ${t.bgDark}`, fontSize: 12, color: t.rust, fontStyle: "italic" }}>Not a veterinary diagnosis. Contact your vet for professional evaluation.</div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── VET FINDER ─────────────────────────────────────────────────────────────────
+function VetFinder({ t, bp }) {
+  const mob = bp.mobile;
+  return (
+    <div style={{ animation: "fadeUp 0.35s ease" }}>
+      <div style={{ marginBottom: 20 }}><div style={S.eyebrow(t)}>Vet Finder</div><h1 style={S.pageTitle(t, mob)}>Find a Vet</h1><p style={S.pageSub(t)}>Search for veterinary clinics near you.</p></div>
+      <div style={{ ...S.card(t), textAlign: "center", padding: "52px 32px" }}>
+        <div style={{ width: 64, height: 64, borderRadius: "50%", background: t.greenPale, border: `2px solid ${t.greenLight}`, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px" }}><Icon name="map" size={28} color={t.green} /></div>
+        <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 22, fontWeight: 700, color: t.ink, marginBottom: 10 }}>Vet Finder Coming Soon</div>
+        <div style={{ fontSize: 14, color: t.inkLight, maxWidth: 320, margin: "0 auto", lineHeight: 1.6 }}>We're building an AI-powered vet finder that uses your location to find the best clinics near you. Check back soon.</div>
+      </div>
     </div>
   );
 }
@@ -729,6 +751,35 @@ function DocCard({ doc, i, pet, t, onUpdatePet }) {
             </button>
           : <div style={{ marginTop: 10, background: t.rustLight, border: `1px solid ${t.rust}22`, borderRadius: 8, padding: "8px 10px" }}>
               <div style={{ fontSize: 11, color: t.rust, marginBottom: 8, lineHeight: 1.4 }}>Permanently delete this document? This cannot be undone.</div>
+              <div style={{ display: "flex", gap: 6 }}>
+                <button onClick={doDelete} style={{ fontSize: 11, padding: "4px 10px", background: t.rust, color: "#fff", border: "none", borderRadius: 6, cursor: "pointer", fontFamily: "'DM Sans',sans-serif", fontWeight: 500 }}>Delete</button>
+                <button onClick={() => setConfirmDelete(false)} style={{ fontSize: 11, padding: "4px 10px", background: "none", border: `1px solid ${t.border}`, borderRadius: 6, cursor: "pointer", color: t.inkMid, fontFamily: "'DM Sans',sans-serif" }}>Cancel</button>
+              </div>
+            </div>
+        }
+      </div>
+    </div>
+  );
+}
+
+// ── DOC CARD ───────────────────────────────────────────────────────────────────
+function DocCard({ doc, i, pet, t, onUpdatePet }) {
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const isImage = ["JPG","PNG","JPEG","WEBP","GIF"].includes(doc.type);
+  const doDelete = () => onUpdatePet(pet.id, { documents: (pet.documents || []).filter((_, j) => j !== i) });
+  return (
+    <div style={{ ...S.card(t), padding: 0, overflow: "hidden", position: "relative" }}>
+      {isImage && doc.preview
+        ? <div style={{ width: "100%", height: 120, backgroundImage: `url(${doc.preview})`, backgroundSize: "cover", backgroundPosition: "center" }} />
+        : <div style={{ width: "100%", height: 80, background: t.surfaceAlt, display: "flex", alignItems: "center", justifyContent: "center", borderBottom: `1px solid ${t.border}` }}><Icon name="doc" size={28} color={t.inkLight} /></div>
+      }
+      <div style={{ padding: "12px 14px" }}>
+        <div style={{ fontSize: 13, fontWeight: 500, color: t.ink, marginBottom: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{doc.name}</div>
+        <div style={{ fontSize: 11, color: t.inkLight }}>{doc.type} · {doc.size} · {doc.date}</div>
+        {!confirmDelete
+          ? <button onClick={() => setConfirmDelete(true)} style={{ marginTop: 8, fontSize: 11, color: t.inkLight, background: "none", border: "none", cursor: "pointer", fontFamily: "'DM Sans',sans-serif", display: "flex", alignItems: "center", gap: 4, padding: 0 }}><Icon name="trash" size={12} color="currentColor" />Delete</button>
+          : <div style={{ marginTop: 8, background: t.rustLight, border: `1px solid ${t.rust}22`, borderRadius: 8, padding: "8px 10px" }}>
+              <div style={{ fontSize: 11, color: t.rust, marginBottom: 6, lineHeight: 1.4 }}>Permanently delete this document? This cannot be undone.</div>
               <div style={{ display: "flex", gap: 6 }}>
                 <button onClick={doDelete} style={{ fontSize: 11, padding: "4px 10px", background: t.rust, color: "#fff", border: "none", borderRadius: 6, cursor: "pointer", fontFamily: "'DM Sans',sans-serif", fontWeight: 500 }}>Delete</button>
                 <button onClick={() => setConfirmDelete(false)} style={{ fontSize: 11, padding: "4px 10px", background: "none", border: `1px solid ${t.border}`, borderRadius: 6, cursor: "pointer", color: t.inkMid, fontFamily: "'DM Sans',sans-serif" }}>Cancel</button>
@@ -785,12 +836,10 @@ function Documents({ pet, t, bp, onUpdatePet }) {
   return (
     <div style={{ animation: "fadeUp 0.35s ease" }}>
       <div style={{ marginBottom: 24 }}><div style={S.eyebrow(t)}>Document Vault</div><h1 style={S.pageTitle(t, mob)}>{pet.name}'s Records</h1><p style={S.pageSub(t)}>Stored health certificates, vet reports, and records.</p></div>
-      <div style={{ background: `linear-gradient(135deg,${t.green},${t.greenMid})`, borderRadius: 16, padding: "20px 24px", marginBottom: 20, display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
-        <div style={{ flex: 1, minWidth: 200 }}>
-          <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 18, fontWeight: 700, color: "#fff", marginBottom: 4 }}>AI Document Scanner</div>
-          <div style={{ fontSize: 13, color: "rgba(255,255,255,0.75)", fontWeight: 300, lineHeight: 1.5 }}>Upload any vet report. Our AI reads it and automatically fills in your records.</div>
-        </div>
-        <button onClick={() => fileRef.current.click()} style={{ padding: "11px 20px", background: "rgba(255,255,255,0.15)", color: "#fff", border: "1px solid rgba(255,255,255,0.3)", borderRadius: 10, fontSize: 13, fontWeight: 500, cursor: "pointer", fontFamily: "'DM Sans',sans-serif", display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+      <div style={{ background: `linear-gradient(135deg,${t.green},${t.greenMid})`, borderRadius: 16, padding: "20px 24px", marginBottom: 20, display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", gap: 12 }}>
+        <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 18, fontWeight: 700, color: "#fff", marginBottom: 2 }}>AI Document Scanner</div>
+        <div style={{ fontSize: 13, color: "rgba(255,255,255,0.75)", fontWeight: 300, lineHeight: 1.5, maxWidth: 400 }}>Upload any vet report. Our AI reads it and automatically fills in your records.</div>
+        <button onClick={() => fileRef.current.click()} style={{ padding: "10px 20px", background: "rgba(255,255,255,0.15)", color: "#fff", border: "1px solid rgba(255,255,255,0.3)", borderRadius: 10, fontSize: 13, fontWeight: 500, cursor: "pointer", fontFamily: "'DM Sans',sans-serif", display: "flex", alignItems: "center", gap: 8 }}>
           <Icon name="sparkle" size={15} color="#fff" />{scanning ? "Scanning..." : "Scan Document"}
         </button>
       </div>
